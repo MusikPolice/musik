@@ -44,3 +44,6 @@ logs/
 
 #Sublime
 *.sublime-*
+
+#Mac
+.DS_Store
