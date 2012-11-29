@@ -1,48 +1,54 @@
 
-			</div>
-			<!-- end main container -->
+            </div>
 
-			<div class="clear"></div>
+            <footer>
+                <p>&copy; <a href="http://github.com/MusikPolice/musik/" class="muted">MusikPolice</a> 2012</p>
+            </footer>
 
 		</div>
 
-    <!-- always include jquery -->
-    <script type="application/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
-    <script type="application/javascript" src="/static/js/jquery.listnav.min-2.1.js"></script>
-    <script type="application/javascript" src="/static/js/header.js"></script>
+        <!-- always include jquery -->
+        <script type="application/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
+        <script type="application/javascript" src="/static/js/jquery.listnav.min-2.1.js"></script>
+        <script type="application/javascript" src="/static/js/header.js"></script>
 
-    <script type="application/javascript">
-        $(function() {
+        <script type="application/javascript">
+            $(function() {
 
-            //wire up the home button to load that page into the main div
-            $("#home_menu_button").click(function()
-            {
-                load_content('/main');
+                //wire up the home button to load that page into the main div
+                $("#home-link").live('click', function()
+                {
+                    load_content('/main');
+                });
+
+                //wire up the artists button to load that page into the main div
+                $("#artist-link").live('click', function()
+                {
+                    load_content('/artists');
+                });
+
+                //wire up the albums button to load that page into the main div
+                $("#albums-link").live('click', function()
+                {
+                    load_content('/albums');
+                });
+
+                //wire up the import media button to load that page into the main div
+                $(".add-media-link").live('click', function()
+                {
+                    load_content('/importmedia');
+                });
+
+                $("#search-link").live('click', function()
+                {
+                    load_content('/search');
+                });
+
             });
+        </script>
 
-            //wire up the artists button to load that page into the main div
-            $("#artists_menu_button").click(function()
-            {
-                load_content('/artists');
-            });
-
-            //wire up the albums button to load that page into the main div
-            $("#albums_menu_button").click(function()
-            {
-                load_content('/albums');
-            });
-
-            //wire up the import media button to load that page into the main div
-            $("#import_menu_button").click(function()
-            {
-                load_content('/importmedia');
-            });
-
-        });
-    </script>
-
-	% for js_file in js_appends:
-		<script type="text/javascript" src="/static/js/${js_file}"></script>
-	% endfor
+    	% for js_file in js_appends:
+    		<script type="text/javascript" src="/static/js/${js_file}"></script>
+    	% endfor
 	</body>
 </html>

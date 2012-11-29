@@ -126,8 +126,7 @@ class Musik:
 			# Create one-element list
 			template_names = [template_names]
 
-		# include the header, sidebar and footer in the template list
-		template_names.insert(0, 'sidebar.html')
+		# include the header, footer in the template list
 		template_names.insert(0, 'header.html')
 		template_names.append('footer.html')
 

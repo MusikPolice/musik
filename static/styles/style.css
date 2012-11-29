@@ -1,34 +1,32 @@
 body {
 	font-family: Arial, sans-serif;
+	color: #333;
 }
 
-form.importfolder fieldset {
-	margin-bottom: 10px;
-	width: 600px;
+a {
+	color: #0084B4;
+	text-decoration: none;
 }
-form.importfolder legend {
-	padding: 0 2px;
-	font-weight: bold;
+
+a:hover {
+    color: #0084B4;
+    text-decoration: underline;
 }
-form.importfolder label {
-	display: inline-block;
-	line-height: 1.8;
-	vertical-align: top;
-	width: 100px; /* width of labels */
+
+footer {
+  color: #9A9EA8;
+  border-top: 1px solid #eee;
+  padding: 10px 0 0 0;
 }
-form.importfolder fieldset ol {
-	margin: 0;
-	padding: 0;
+
+header {
+  border-bottom: 1px solid #eee;
+  padding: 0 0 10px 0;
+  margin: 10px 0 0 0;
 }
-form.importfolder fieldset li {
-	list-style: none;
-	padding: 5px;
-	margin: 0;
-}
-form.importfolder em {
-	font-weight: bold;
-	font-style: normal;
-	color: #f00;
+
+nav a {
+	margin: 0 15px 0 0;
 }
 
 div.validate-error {
@@ -36,30 +34,4 @@ div.validate-error {
 	border: 1px solid #EB8C7A;
 	padding: 5px;
 	margin-bottom: 10px;
-}
-
-div#header {
-	background-color: gray;
-	padding:10px;
-}
-
-div#header .button
-{
-	float: left;
-	width: 200px;
-}
-
-div#sidebar {
-	border-right: 1px solid gray;
-	height: 200px;
-	width: 219px;
-}
-
-div.image-120x120 {
-	background-color: gray;
-	border: 1px solid black;
-	float: left;
-	height: 120px;
-	margin: 10px;
-	width: 120px;
 }
