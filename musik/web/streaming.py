@@ -55,7 +55,7 @@ import os
 import urllib
 import Queue
 
-from musik import initLogging
+from musik import log
 
 QUEUE_SIZE = 10
 BUFFER_SIZE = 10
@@ -137,7 +137,7 @@ class GstAudioFile(object):
     def __init__(self, path):
         self.running = False
         self.finished = False
-        self.log = initLogging(__name__)
+        self.log = log.Log(__name__)
         self.log.info("%s created with path %s" % (__name__, path))
 
         # Set up the Gstreamer pipeline.

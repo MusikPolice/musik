@@ -44,3 +44,6 @@ logs/
 
 #Sublime
 *.sublime-*
+
+#Config file
+*.cfg

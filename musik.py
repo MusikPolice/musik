@@ -4,7 +4,7 @@ import signal
 import sys
 import os
 
-from musik import initLogging
+from musik import log
 import musik.library.importer
 import musik.web.application
 
@@ -16,7 +16,7 @@ def cleanup(signum=None, frame=None):
 	if type(signum) == type(None):
 		pass
 	else:
-		log.info(u'Signal %i caught, saving and exiting...', int(signum))
+		log.info(u'Signal %i caught, saving and exiting...' % int(signum))
 
 	log.info(u'Stopping worker threads')
 	if importThread != None:
@@ -38,17 +38,7 @@ if __name__ == '__main__':
 
 	threads = []
 
-	# get logging set up
-	# confirm that logging directory exists
-	log_dir = os.path.join(os.path.dirname(__file__), "logs") # default logging location
-	if not os.path.isdir(log_dir):
-		try:
-			os.mkdir(log_dir)
-		except IOError:
-			print u"Could not create log directory %s" % log_dir
-			sys.exit(1)
-
-	log = initLogging(__name__)
+	log = log.Log(__name__)
 
 	# TODO: also register for CherryPy shutdown messages
 	log.info(u'Registering for shutdown signals')

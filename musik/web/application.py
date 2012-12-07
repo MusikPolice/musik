@@ -12,7 +12,7 @@ import requests
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from musik import initLogging
+from musik import log
 from musik.db import DatabaseWrapper
 from musik.web import api
 
@@ -72,7 +72,7 @@ class Musik:
 	api = api.API()
 
 	def __init__(self):
-		self.log = initLogging(__name__)
+		self.log = log.Log(__name__)
 
 
 	def _api_request(self, url):
@@ -210,7 +210,7 @@ class MusikWebApplication:
 	threads = None
 
 	def __init__(self, threads):
-		self.log = initLogging(__name__)
+		self.log = log.Log(__name__)
 		self.threads = threads
 
 		# Subscribe specifically to the 'stop' method passed by cherrypy.

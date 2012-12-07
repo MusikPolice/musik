@@ -11,7 +11,7 @@ from mutagen.mp3 import MP3
 
 from sqlalchemy.exc import OperationalError
 
-from musik import initLogging
+from musik import log
 from musik.db import DatabaseWrapper, ImportTask, Track, Album, Artist, Disc
 from musik.util import EasygoingDictionary
 
@@ -28,7 +28,7 @@ class ImportThread(threading.Thread):
 		the same time.
 		"""
 		super(ImportThread, self).__init__(name=__name__)
-		self.log = initLogging(__name__)
+		self.log = log.Log(__name__)
 		db = DatabaseWrapper()
 		self.sa_session = db.get_session()
 
@@ -51,21 +51,21 @@ class ImportThread(threading.Thread):
 					# start processing it
 					task.started = datetime.utcnow()
 					self.sa_session.commit()
-					self.log.info(u'%s is processing task %s', self.getName(), unicode(task))
+					self.log.info(u'%s is processing task %s' % (self.getName(), unicode(task)))
 
 					# process the task
 					if os.path.isdir(task.uri):
-						self.log.info(u'Importing directory %s', task.uri)
+						self.log.info(u'Importing directory %s' % task.uri)
 						self.importDirectory(task.uri)
 					elif os.path.isfile(task.uri):
-						self.log.info(u'Importing file %s', task.uri)
+						self.log.info(u'Importing file %s' % task.uri)
 						self.importFile(task.uri)
 					else:
-						self.log.warning(u'Unrecognized URI %s', task.uri)
+						self.log.warning(u'Unrecognized URI %s' % task.uri)
 
 					task.completed = datetime.utcnow()
 					self.sa_session.commit()
-					self.log.info(u'%s has finished processing task %s', self.getName(), unicode(task))
+					self.log.info(u'%s has finished processing task %s' % (self.getName(), unicode(task)))
 
 				time.sleep(1)
 
@@ -122,7 +122,7 @@ class ImportThread(threading.Thread):
 
 		mtype = mimetypes.guess_type(uri)[0]
 		if mtype != u'audio/mpeg':
-			self.log.info(u'Unsupported mime type %s. Ignoring file.', mtype)
+			self.log.info(u'Unsupported mime type %s. Ignoring file.' % mtype)
 
 		# Try to read the metadata appropriately.
 		self.createTrack(uri)
@@ -469,7 +469,7 @@ class ImportThread(threading.Thread):
 					track.album_artist = artist
 					self.sa_session.add(artist)
 
-		self.log.info(u'Added track %s to the current session.', track)
+		self.log.info(u'Added track %s to the current session.' % track)
 
 		#commit the transaction
 		self.sa_session.commit()
@@ -743,5 +743,5 @@ class ImportThread(threading.Thread):
 
 	def stop(self):
 		"""Cleans up the thread"""
-		self.log.info(u'%s.stop has been called', self.getName())
+		self.log.info(u'%s.stop has been called' % self.getName())
 		self.running = False

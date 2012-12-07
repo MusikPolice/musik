@@ -4,7 +4,7 @@ import os
 
 import cherrypy
 
-from musik import initLogging
+from musik import log
 from musik.web import streaming
 from musik.db import Album, Artist, ImportTask, Track, Disc
 
@@ -53,7 +53,7 @@ class OggStream:
 	stream = None
 
 	def __init__(self):
-		self.log = initLogging(__name__)
+		self.log = log.Log(__name__)
 
 	@cherrypy.expose
 	def track(self, id):
@@ -106,7 +106,7 @@ class API:
 	stream = OggStream()
 
 	def __init__(self):
-		self.log = initLogging(__name__)
+		self.log = log.Log(__name__)
 
 
 	@cherrypy.expose
