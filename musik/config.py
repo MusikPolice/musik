@@ -14,6 +14,8 @@ def get(section, option):
 	# TODO: specify default configuration values here using the set method
 	conf = ConfigParser()
 	conf.add_section("General")
+	conf.set("General", "database_path", os.path.abspath(os.path.join(parent_directory, "musik.db")))
+	conf.set("General", "server_domain_name", "localhost")
 	conf.set("General", "server_port", "8080")
 
 	conf.add_section("Logging")
@@ -30,3 +32,30 @@ def get(section, option):
 
 	# return the requested value
 	return conf.get(section, option)
+
+
+def get_root_directory():
+	"""Returns the root directory that Musik is installed in. This is where
+	you'll find the database, config files, and musik.py
+	"""
+	return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+
+
+def get_server_port():
+	"""Returns the server port configuration setting. This can be overriden
+	with the PORT environment variable.
+	"""
+	return int(os.environ.get('PORT', get('General', 'server_port')))
+
+
+def get_site_root():
+	"""Returns the base URI of the web application. This includes the scheme
+	(http://), the domain name, and the port that the application is being
+	served from.
+	"""
+	port = get("General", "server_port")
+
+	if port is None or port == "80":
+		return "http://%s" % get("General", "server_domain_name")
+	else:
+		return "http://%s:%s" % (get("General", "server_domain_name"), str(port))

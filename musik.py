@@ -4,6 +4,7 @@ import signal
 import sys
 import os
 
+from musik import config
 from musik import log
 import musik.library.importer
 import musik.web.application
@@ -54,5 +55,6 @@ if __name__ == '__main__':
 	log.info(u'Starting Web App')
 	app = musik.web.application.MusikWebApplication(threads=threads)
 
-	port = int(os.environ.get('PORT', '8080'))
+	# start the web app
+	port = config.get_server_port()
 	app.start(port=port)

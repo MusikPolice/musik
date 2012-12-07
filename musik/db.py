@@ -1,6 +1,8 @@
 from datetime import datetime
 import os, os.path
 
+from musik import config
+
 from sqlalchemy import Column, create_engine, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import String, Integer, DateTime, Boolean, BigInteger
@@ -9,7 +11,6 @@ from sqlalchemy.orm import backref, relationship, sessionmaker
 
 # Helper to map and register a Python class a db table
 Base = declarative_base()
-
 
 # Represents an import task
 class ImportTask(Base):
@@ -216,10 +217,7 @@ class Track(Base):
 	def as_dict(self):
 		"""Returns a representation of the track as a dictionary"""
 		fields = {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
-		#TODO: don't hardcode the url!
-		fields['stream_uri'] = 'http://localhost:8080/api/stream/track/' + str(fields['id'])
-
+		fields['stream_uri'] = '%s/api/stream/track/%s' % (config.get_site_root(), str(fields['id']))
 		return fields
 
 
@@ -239,7 +237,7 @@ class DatabaseWrapper:
 		This function starts a new database engine and ensures that the
 		database has been initialized.
 		"""
-		self.db_path = os.path.abspath(os.path.join(os.curdir, 'musik.db'))
+		self.db_path = config.get("General", "database_path")
 		self.init_database()
 
 	def get_engine(self):
