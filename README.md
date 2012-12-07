@@ -40,8 +40,12 @@ workon musik-venv
 
 Install dependencies from your distribution's package manager
 ```bash
+# Linux
 sudo apt-get update
 sudo apt-get install libgstreamer-0.10 gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly python-gst0.10
+
+# Mac (With Homebrew: http://mxcl.github.com/homebrew/)
+brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-ugly gst-python
 ```
 
 Most modern distributions will already have these packages installed, so this step may or may not be necessary.
