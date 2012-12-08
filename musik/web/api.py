@@ -5,7 +5,7 @@ import os
 import cherrypy
 
 from musik import log
-from musik.streaming import gstreamer
+from musik import streaming
 from musik.db import Album, Artist, ImportTask, Track, Disc
 
 
@@ -74,19 +74,13 @@ class OggStream:
 			"""
 			try:
 				self.log.info(u'OggStream.track trying to open %s for streaming' % unicode(uri))
-				self.stream = gstreamer.GstAudioFile(uri)
+				self.stream = streaming.audio_open(uri)
 
 				self.log.info(u'OggStream.track started streaming %s' % unicode(uri))
 				for block in self.stream:
 					yield block
-			except GStreamerError as e:
-				self.log.error(u'An unknown GStreamer error ocurred %s' % unicode(e))
-			except UnknownTypeError as e:
-				self.log.error(u'GStreamer could not decode the file contents. Ensure that you have the proper plugins installed. %s' % unicode(e))
-			except FileReadError as e:
-				self.log.error(u'GStreamer could not open the file. Ensure that it exists and is readable. %s' % unicode(e))
-			except NoStreamError as e:
-				self.log.error(u'GStreamer could not find an audio stream in the file. Ensure that it is a valid audio format. %s' % unicode(e))
+			except streaming.DecodeError as e:
+				self.log.error(u'Failed to open audio stream %s' % uri)
 			finally:
 				self.log.info(u'OggStream.track streaming is complete. Closing stream.')
 				if self.stream is not None:
