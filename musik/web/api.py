@@ -5,7 +5,7 @@ import os
 import cherrypy
 
 from musik import log
-from musik.web import streaming
+from musik.streaming import gstreamer
 from musik.db import Album, Artist, ImportTask, Track, Disc
 
 
@@ -74,7 +74,7 @@ class OggStream:
 			"""
 			try:
 				self.log.info(u'OggStream.track trying to open %s for streaming' % unicode(uri))
-				self.stream = streaming.GstAudioFile(uri)
+				self.stream = gstreamer.GstAudioFile(uri)
 
 				self.log.info(u'OggStream.track started streaming %s' % unicode(uri))
 				for block in self.stream:
