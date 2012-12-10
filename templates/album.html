@@ -6,17 +6,14 @@
 			</script>
 
 			<div class="grid_12 main">
-				<h2>${album['title']}</h2>
-
-				<p>
-					The Lady of the Lake, her arm clad in the purest shimmering samite, held aloft Excalibur from the bosom of the water, signifying by divine providence that I, Arthur, was to carry Excalibur. That is why I am your king. Well, Mercia's a temperate zone! We want a shrubbery!! Camelot! How do you know she is a witch? On second thoughts, let's not go there. It is a silly place.
-				</p>
-				<p>
-					Shh! Knights, I bid you welcome to your new home. Let us ride to Camelot! Well, Mercia's a temperate zone! Why do you think that she is a witch? I'm not a witch. The nose? Why do you think that she is a witch?
-				</p>
-				<p>
-					I dunno. Must be a king. She looks like one. Well, Mercia's a temperate zone!
-				</p>
+				<h1>${album['title']}</h1>
+				<h2>${artist['name']}</h2>
+				<h3>Tracks:</h3>
+				<ol>
+				% for track in tracks:
+					<li><a href='#' class='${track['id']}'>${track['title']}</a></li>
+				% endfor
+				</ol>
 
 			</div>
 			<div class="clear"></div>

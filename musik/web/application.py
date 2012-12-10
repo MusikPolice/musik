@@ -169,13 +169,16 @@ class Musik:
 		else:
 			self.log.info(u'albums was called with id %d' % int(id))
 
-			albums = self._api_request('%s/api/albums/id/%s' % (config.get_site_root(), str(id)))
-			if albums:
-				return self._render("album.html", **{"album": albums[0],})
+			album = self._api_request('%s/api/albums/id/%s' % (config.get_site_root(), str(id)))[0]
+			artist = self._api_request('%s/api/artists/id/%s' % (config.get_site_root(), album['artist_id']))[0]
+			tracks = self._api_request('%s/api/tracks/album_id/%s' % (config.get_site_root(), album['id']))
+
+			if album and artist and tracks:
+				return self._render("album.html", **{"album": album, "artist": artist, "tracks": tracks,})
 
 
 	@cherrypy.expose
-	def artists(self, i d=None):
+	def artists(self, id=None):
 		"""Renders the artists template.
 		"""
 		if id == None:
@@ -187,9 +190,11 @@ class Musik:
 		else:
 			self.log.info(u'artists was called with id %d' % int(id))
 
-			artists = self._api_request('%s/api/artists/id/%s' % (config.get_site_root(), str(id)))
-			if artists:
-				return self._render("artist.html", **{"artist": artists[0],})
+			artist = self._api_request('%s/api/artists/id/%s' % (config.get_site_root(), str(id)))[0]
+			albums = self._api_request('%s/api/albums/artist_id/%s' % (config.get_site_root(), str(id)))
+
+			if artist and albums:
+				return self._render("artist.html", **{"artist": artist, "albums": albums,})
 
 
 	@cherrypy.expose

@@ -1,22 +1,20 @@
 			<script language="JavaScript">
 				$(document).ready(function()
 				{
-					//do nothing
+					//redirect to album page on click
+					$('#albums a').click(function() {
+						load_content('/albums/' + $(this).attr('class'))
+					})
 				});
 			</script>
 
 			<div class="grid_12 main">
-				<h2>${artist['name']}</h2>
+				<h1>${artist['name']}</h1>
 
-				<p>
-					The Lady of the Lake, her arm clad in the purest shimmering samite, held aloft Excalibur from the bosom of the water, signifying by divine providence that I, Arthur, was to carry Excalibur. That is why I am your king. Well, Mercia's a temperate zone! We want a shrubbery!! Camelot! How do you know she is a witch? On second thoughts, let's not go there. It is a silly place.
-				</p>
-				<p>
-					Shh! Knights, I bid you welcome to your new home. Let us ride to Camelot! Well, Mercia's a temperate zone! Why do you think that she is a witch? I'm not a witch. The nose? Why do you think that she is a witch?
-				</p>
-				<p>
-					I dunno. Must be a king. She looks like one. Well, Mercia's a temperate zone!
-				</p>
+				<ul id='albums'>
+				% for album in albums:
+					<li><a href='#' class='${album['id']}'>${album['title']}</a></li>
+				% endfor
 
 			</div>
 			<div class="clear"></div>
