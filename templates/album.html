@@ -1,7 +1,10 @@
 			<script language="JavaScript">
 				$(document).ready(function()
 				{
-					//do nothing
+					//load song on click
+					$('#tracks a').click(function() {
+						play_uri('/api/stream/track/' + $(this).attr('class'))
+					})
 				});
 			</script>
 
@@ -9,7 +12,7 @@
 				<h1>${album['title']}</h1>
 				<h2>${artist['name']}</h2>
 				<h3>Tracks:</h3>
-				<ol>
+				<ol id="tracks">
 				% for track in tracks:
 					<li><a href='#' class='${track['id']}'>${track['title']}</a></li>
 				% endfor

@@ -1,16 +1,11 @@
 /*
- * Loads the specified uri and dumps the contents into #main
+ * An HTML5 audio player
  */
-function load_content(url)
-{
-	$.get(url, function(data)
-	{
-		$('#main').html(data)
-	});
-}
-
 var player;
 
+/*
+ * Create an HTML5 audio player on load and hook up some basic controls
+ */
 $(document).ready(function() {
 	//create the player
 	player = document.createElement('audio');
@@ -30,3 +25,27 @@ $(document).ready(function() {
 		}
 	})
 })
+
+/*
+ * Loads the specified uri and dumps the contents into #main
+ */
+function load_content(url)
+{
+	$.get(url, function(data)
+	{
+		$('#main').html(data)
+	});
+}
+
+/*
+ * Loads the specified uri into the streaming player and starts it playing
+ */
+function play_uri(uri)
+{
+	player.setAttribute('src', uri);
+	if (player.paused)
+	{
+		player.play();
+		$('#playpause').html('Pause');
+	}
+}
