@@ -12,6 +12,7 @@ import requests
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from musik import config
 from musik import log
 from musik.db import DatabaseWrapper
 from musik.web import api
@@ -163,14 +164,14 @@ class Musik:
 			self.log.info(u'albums was called with no id')
 
 			#TODO: make this url configurable!
-			albums = self._api_request('http://localhost:8080/api/albums/')
+			albums = self._api_request('%s/api/albums/' % config.get_site_root())
 			if albums:
 				return self._render("albums.html", **{"albums": albums,})
 		else:
 			self.log.info(u'albums was called with id %d' % int(id))
 
 			#TODO: make this url configurable!
-			albums = self._api_request('http://localhost:8080/api/albums/id/' + id)
+			albums = self._api_request('%s/api/albums/id/%s' % (config.get_site_root(), str(id)))
 			if albums:
 				return self._render("album.html", **{"album": albums[0],})
 
@@ -183,14 +184,14 @@ class Musik:
 			self.log.info(u'artists was called with no id')
 
 			#TODO: make this url configurable!
-			artists = self._api_request('http://localhost:8080/api/artists/')
+			artists = self._api_request('%s/api/artists/' % config.get_site_root())
 			if artists:
 				return self._render("artists.html", **{"artists": artists,})
 		else:
 			self.log.info(u'artists was called with id %d' % int(id))
 
 			#TODO: make this url configurable!
-			artists = self._api_request('http://localhost:8080/api/artists/id/' + id)
+			artists = self._api_request('%s/api/artists/id/%s' % (config.get_site_root(), str(id)))
 			if artists:
 				return self._render("artist.html", **{"artist": artists[0],})
 
