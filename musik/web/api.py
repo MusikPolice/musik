@@ -1,6 +1,7 @@
 import json
 import re
 import os
+import random
 
 import cherrypy
 
@@ -120,6 +121,10 @@ class API:
 			return json.dumps(self.queryAlbums(query))
 		if params[0] == 'artists':
 			return json.dumps(self.queryArtists(query))
+		if params[0] == 'tracks' and params[1] == 'random':
+			#retern a random track
+			tracks = self.queryTracks({})
+			return json.dumps(tracks[random.randint(0, len(tracks) - 1)])
 		if params[0] == 'tracks':
 			return json.dumps(self.queryTracks(query))
 		if params[0] == 'discs':
