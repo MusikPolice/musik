@@ -1,10 +1,10 @@
 /*
- * An HTML5 audio player
+ * The song that is currently playing
  */
-var player;
+var nowplaying = null;
 
 /*
- * True if shuffle is on
+ * True if shuffle mode is activated
  */
 var shuffle = true;
 
@@ -20,70 +20,108 @@ function load_content(url)
 }
 
 /*
- * Loads the specified uri into the streaming player and starts it playing
+ * Plays the specified song
  */
-function play_uri(uri)
-{
-	player.setAttribute('src', uri);
-	if (player.paused)
-	{
-		player.play();
-		$('#playpause').html('Pause');
+function play_song(url) {
+	if (nowplaying != null) {
+		nowplaying.stop();
+		nowplaying.destruct();
 	}
-}
 
-/**
- * Loads a random track from the library into the player
- */
-function load_random_track()
-{
-	if (shuffle)
-	{
-		//load a random track
-		$.get('/api/tracks/random', function(data)
-		{
-			alert(data['stream_uri']);
-			play_uri(data['stream_uri']);
-		});
-	}
-	else
-	{
-		//update controls state
-		$('#playpause').html('Play');
-	}
-}
+	//TODO: once multiple audio formats are supported, query SoundManager2 for the
+	//		browser's supported formats and dynamically request the appropriate one.
 
-/*
- * Create an HTML5 audio player on load and hook up some basic controls
- */
-$(document).ready(function() {
-	//create the player
-	player = document.createElement('audio');
-
-	//load a random track but don't start playing yet
-	$.get('/api/tracks/random', function(data)
-	{
-		player.setAttribute('src', data['stream_uri']);
-		if (!player.paused)
-		{
-			player.pause();
+	nowplaying = soundManager.createSound({
+		autoLoad: true,
+		autoPlay: true,
+		id: 'nowplaying',
+		type: 'audio/ogg',
+		url: url,
+		onfinish: function() {
+			if (shuffle)
+			{
+				//if shuffle is active, load the next song
+				$.get('/api/tracks/random', function(data)
+				{
+					play_song(data['stream_uri']);
+				});
+			}
+			else
+			{
+				//destroy the sound object
+				nowplaying.stop();
+				nowplaying.destruct();
+				nowplaying = null;
+			}
+		},
+		onfinish: function() {
+			$('#playpause').html('Play');
 		}
-	});
-
-	//hook up controls
-	$('#playpause').click(function() {
-		if (player.paused)
-		{
-			player.play();
+		onpause: function() {
+			$('#playpause').html('Play');
+		},
+		onplay: function() {
 			$('#playpause').html('Pause');
-		}
-		else
-		{
-			player.pause();
+		},
+		onresume: function() {
+			$('#playpause').html('Pause');
+		},
+		onstop: function() {
 			$('#playpause').html('Play');
 		}
 	});
+}
 
-	//on track end, if shuffle mode is active, we want to load the next track
-	player.addEventListener('ended', load_random_track(), false);
-})
+$(document).ready(function()
+{
+	//configure SoundManager2
+	soundManager.audioFormats = {
+		//at this time, we only need support for ogg vorbis audio streams.
+		'ogg': {
+			'type': ['audio/ogg; codecs=vorbis'],
+			'required': true
+		}
+	};
+	soundManager.setup({
+		url: '/static/swf/',
+		onready: function() {
+			//once we're ready to go, show the play/pause button
+			$('#player').show("slow");
+		},
+		ontimeout: function(status) {
+			//holy crap it broke!
+			alert("Failed to load SoundManager2! Status is " + status.success + ", error type is " + status.error.type);
+		}
+	});
+
+	//set up player controls
+	$('#playpause').click(function()
+	{
+		if (nowplaying == null)
+		{
+			//if the player is stopped, start playing the default song
+			//TODO: defaults suck.
+			play_song('http://localhost:8080/api/stream/track/1');
+		}
+		else
+		{
+			//if a sound has been loaded, toggle between playing and paused states
+			soundManager.togglePause('nowplaying');
+		}
+	});
+
+	//shuffle functionality!
+	$('#shuffle').click(function()
+	{
+		if (shuffle)
+		{
+			shuffle = false;
+			$('#shuffle').html('Shuffle is off');
+		}
+		else
+		{
+			shuffle = true;
+			$('#shuffle').html('Shuffle is on');
+		}
+	});
+});
