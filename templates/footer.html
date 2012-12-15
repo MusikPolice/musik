@@ -8,11 +8,27 @@
 		</div>
 
         <!-- always include jquery -->
-        <script type="application/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
-        <script type="application/javascript" src="/static/js/jquery.listnav.min-2.1.js"></script>
-        <script type="application/javascript" src="/static/js/header.js"></script>
+        <script type="text/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.listnav.min-2.1.js"></script>
+        <script type="text/javascript" src="/static/js/soundmanager2/soundmanager2.js"></script>
+        <script type="text/javascript" src="/static/js/header.js"></script>
 
-        <script type="application/javascript">
+        <!-- application js -->
+        <script type="text/javascript" src="/static/js/header.js"></script>
+
+        <script type="text/javascript">
+
+            /*
+             * Loads the specified uri and dumps the contents into #main
+             */
+            function load_content(url)
+            {
+                $.get(url, function(data)
+                {
+                    $('#main').html(data)
+                });
+            }
+
             $(function() {
 
                 //wire up the home button to load that page into the main div
