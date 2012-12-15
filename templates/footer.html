@@ -1,13 +1,70 @@
 
-			</div>
-			<!-- end main container -->
+            </div>
 
-			<div class="clear"></div>
+            <footer>
+                <p>&copy; <a href="http://github.com/MusikPolice/musik/" class="muted">MusikPolice</a> 2012</p>
+            </footer>
 
 		</div>
 
-	% for js_file in js_appends:
-		<script type="text/javascript" src="/static/js/${js_file}"></script>
-	% endfor
+        <!-- always include jquery -->
+        <script type="text/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.listnav.min-2.1.js"></script>
+        <script type="text/javascript" src="/static/js/soundmanager2/soundmanager2.js"></script>
+        <script type="text/javascript" src="/static/js/header.js"></script>
+
+        <!-- application js -->
+        <script type="text/javascript" src="/static/js/header.js"></script>
+
+        <script type="text/javascript">
+
+            /*
+             * Loads the specified uri and dumps the contents into #main
+             */
+            function load_content(url)
+            {
+                $.get(url, function(data)
+                {
+                    $('#main').html(data)
+                });
+            }
+
+            $(function() {
+
+                //wire up the home button to load that page into the main div
+                $("#home-link").live('click', function()
+                {
+                    load_content('/main');
+                });
+
+                //wire up the artists button to load that page into the main div
+                $("#artist-link").live('click', function()
+                {
+                    load_content('/artists');
+                });
+
+                //wire up the albums button to load that page into the main div
+                $("#albums-link").live('click', function()
+                {
+                    load_content('/albums');
+                });
+
+                //wire up the import media button to load that page into the main div
+                $(".add-media-link").live('click', function()
+                {
+                    load_content('/importmedia');
+                });
+
+                $("#search-link").live('click', function()
+                {
+                    load_content('/search');
+                });
+
+            });
+        </script>
+
+    	% for js_file in js_appends:
+    		<script type="text/javascript" src="/static/js/${js_file}"></script>
+    	% endfor
 	</body>
 </html>

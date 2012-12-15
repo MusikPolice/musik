@@ -1,22 +1,27 @@
-		% for js_file in js_appends:
-			<script type="text/javascript" src="/static/js/${js_file}"></script>
-		% endfor
+			<h2>Musik <small>Media Importer</small></h2>
 
-			<h1>Musik Media Importer</h1>
-			<p>From this page, you can import all of your precious media files into the musik database. Start by entering a directory below:</p>
+			<div class="grater">
+				<div>
 
-			<div class="validate-error" id="validate-error-top"></div>
+					<div class="validate-error" id="validate-error-top"></div>
 
-			<form id="importmedia-form" class="importfolder">
-				<fieldset>
-					<legend>Enter the path to a directory below:&nbsp;</legend>
-					<ol>
-						<li>
-							<label for="path">Path<em>*</em></label>
+					<form>
+						<p>
+							<label for="path">Path to music directory</label>
 							<input id="path" name="path" type="text">
-							<input type="submit" value="Submit" />
-						</li>
-					</ol>
-				</fieldset>
-			</form>
+						</p>
+
+						<button type="submit" class="btn btn-primary">Import Music</button>
+					</form>
+
+				</div>
+
+				<div>
+					<p>From this page, you can import all of your precious media files into the musik database.</p>
+				</div>
+			</div>
+
+			% for js_file in js_appends:
+				<script type="text/javascript" src="/static/js/${js_file}"></script>
+			% endfor
 
