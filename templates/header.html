@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
-		<meta charset="UTF-8">
-		<title>${title} - Musik</title>
-		<link rel="stylesheet" href="/static/styles/960gs.css" />
+		<meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <title>${title} - Musik</title>
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <meta name="viewport" content="width=device-width">
+
+        <link rel="stylesheet" href="/static/components/bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/static/components/grater/grater.css">
+
 		<link rel="stylesheet" href="/static/styles/style.css" />
 		<link rel="stylesheet" href="/static/styles/listnav.css" />
 
@@ -18,62 +26,34 @@
 
 		<!-- application js -->
 		<script type="application/javascript" src="/static/js/header.js"></script>
+
+		<link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.ico" />
+        <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico" />
+
 	</head>
 	<body>
-		<script type="application/javascript">
-			$(function() {
 
-				//wire up the home button to load that page into the main div
-				$("#home_menu_button").click(function()
-				{
-					load_content('/main');
-				});
+		<div class="grater-container">
 
-				//wire up the artists button to load that page into the main div
-				$("#artists_menu_button").click(function()
-				{
-					load_content('/artists');
-				});
+			<header>
+                <h1>
+                	<a href="javascript:void(0);" id="home-link">
+                		<img src="/static/images/musik-60x46.png" />
+                	</a>
+                </h1>
 
-				//wire up the albums button to load that page into the main div
-				$("#albums_menu_button").click(function()
-				{
-					load_content('/albums');
-				});
+                <nav>
+                	<a href="javascript:void(0);" id="artist-link">Artists</a>
+                	<a href="javascript:void(0);" id="albums-link">Albums</a>
+                	<a href="javascript:void(0);" class="add-media-link">Add Media</a>
+                	<a href="javascript:void(0);" id="search-link">Search</a>
+                </nav>
 
-				//wire up the import media button to load that page into the main div
-				$("#import_menu_button").click(function()
-				{
-					load_content('/importmedia');
-				});
+            </header>
 
-			});
-		</script>
+            <div>
+                <p>Music Player</p>
+            </div>
 
-		<!-- header menu -->
-		<div class="container_12">
-
-			<div id="header" class="grid_12">
-				<div id="home_menu_button" class="button">
-					<!-- musik logo -->
-					<img src="/static/images/musik-60x46.png" />
-				</div>
-				<div id="artists_menu_button" class="button">
-					<!-- artists menu button -->
-					<p>Artists</p>
-				</div>
-				<div id="albums_menu_button" class="button">
-					<!-- albums menu button -->
-					<p>Albums</p>
-				</div>
-				<div id="import_menu_button" class="button">
-					<!-- import media menu button -->
-					<p>Add Media</p>
-				</div>
-				<div id="search_bar" class="button">
-					<!-- search bar -->
-					<p>Search</p>
-				</div>
-				<div class="clear"></div>
-			</div>
+            <div id="main">
 

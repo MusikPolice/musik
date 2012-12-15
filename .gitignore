@@ -45,5 +45,9 @@ logs/
 #Sublime
 *.sublime-*
 
+
 #Config file
 *.cfg
+
+#Mac
+.DS_Store
