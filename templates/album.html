@@ -10,8 +10,7 @@
 			</script>
 
 			<div class="grid_12 main">
-				<h1>${album['title']}</h1>
-				<h2>${artist['name']}</h2>
+				<h2>${album['title']} <small>${artist['name']}</small></h2>
 				<h3>Tracks:</h3>
 				<ol id="tracks">
 				% for track in tracks:

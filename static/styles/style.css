@@ -25,8 +25,17 @@ header {
   margin: 10px 0 0 0;
 }
 
+nav {
+	position: relative;
+}
+
 nav a {
 	margin: 0 15px 0 0;
+}
+
+nav #player-controls {
+	position: absolute;
+	right: 0px;
 }
 
 div.validate-error {

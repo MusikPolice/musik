@@ -55,24 +55,24 @@ function play_song(url) {
 			}
 			else
 			{
-				//destroy the sound object
-				$('#playpause').html('Play');
+				//destroy the sound playpause-controlobject
+				$('#playpause-control').html('Play');
 				nowplaying.stop();
 				nowplaying.destruct();
 				nowplaying = null;
 			}
 		},
 		onpause: function() {
-			$('#playpause').html('Play');
+			$('#playpause-control').html('Play');
 		},
 		onplay: function() {
-			$('#playpause').html('Pause');
+			$('#playpause-control').html('Pause');
 		},
 		onresume: function() {
-			$('#playpause').html('Pause');
+			$('#playpause-control').html('Pause');
 		},
 		onstop: function() {
-			$('#playpause').html('Play');
+			$('#playpause-control').html('Play');
 		}
 	});
 }
@@ -100,7 +100,7 @@ $(document).ready(function()
 	});
 
 	//set up player controls
-	$('#playpause').click(function()
+	$('#playpause-control').click(function()
 	{
 		if (nowplaying == null)
 		{
@@ -114,18 +114,27 @@ $(document).ready(function()
 		}
 	});
 
-	//shuffle functionality!
-	$('#shuffle').click(function()
+	$('#skip-control').click(function() {
+		if (shuffle)
+		{
+			//if shuffle is on, play another song
+			play_random();
+		}
+
+		//TODO: skip behaviour is undefined if shuffle is off
+	});
+
+	$('#shuffle-control').click(function()
 	{
 		if (shuffle)
 		{
 			shuffle = false;
-			$('#shuffle').html('Shuffle is off');
+			$('#shuffle-control').html('Shuffle is off');
 		}
 		else
 		{
 			shuffle = true;
-			$('#shuffle').html('Shuffle is on');
+			$('#shuffle-control').html('Shuffle is on');
 		}
 	});
 });
