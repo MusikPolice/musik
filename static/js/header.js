@@ -9,6 +9,28 @@ var nowplaying = null;
 var shuffle = true;
 
 /*
+ * Loads the specified uri and dumps the contents into #main
+ */
+function load_content(url)
+{
+	$.get(url, function(data)
+	{
+		$('#main').html(data)
+	});
+}
+
+/*
+ * Plays a random song from the library
+ */
+function play_random() {
+	//if shuffle is active, load the next song
+	$.get('/api/tracks/random', function(data)
+	{
+		play_song(data['stream_uri']);
+	});
+}
+
+/*
  * Plays the specified song
  */
 function play_song(url) {
@@ -29,23 +51,17 @@ function play_song(url) {
 		onfinish: function() {
 			if (shuffle)
 			{
-				//if shuffle is active, load the next song
-				$.get('/api/tracks/random', function(data)
-				{
-					play_song(data['stream_uri']);
-				});
+				play_random();
 			}
 			else
 			{
 				//destroy the sound object
+				$('#playpause').html('Play');
 				nowplaying.stop();
 				nowplaying.destruct();
 				nowplaying = null;
 			}
 		},
-		onfinish: function() {
-			$('#playpause').html('Play');
-		}
 		onpause: function() {
 			$('#playpause').html('Play');
 		},
@@ -88,9 +104,8 @@ $(document).ready(function()
 	{
 		if (nowplaying == null)
 		{
-			//if the player is stopped, start playing the default song
-			//TODO: defaults suck.
-			play_song('http://localhost:8080/api/stream/track/1');
+			//if the player is stopped, start playing a random song
+			play_random();
 		}
 		else
 		{

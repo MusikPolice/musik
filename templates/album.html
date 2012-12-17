@@ -3,7 +3,8 @@
 				{
 					//load song on click
 					$('#tracks a').click(function() {
-						play_uri('/api/stream/track/' + $(this).attr('class'))
+						var uri = '/api/stream/' + $(this).attr('id');
+						play_song(uri)
 					})
 				});
 			</script>
@@ -14,7 +15,7 @@
 				<h3>Tracks:</h3>
 				<ol id="tracks">
 				% for track in tracks:
-					<li><a href='#' class='${track['id']}'>${track['title']}</a></li>
+					<li><a href='#' id='${track['id']}' class="song_link">${track['title']}</a></li>
 				% endfor
 				</ol>
 

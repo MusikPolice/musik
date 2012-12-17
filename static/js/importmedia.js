@@ -18,16 +18,23 @@ $('#importmedia-form').submit(function(event) {
 		return false;
 	}
 
+	var req = {
+		path: $('#path').val()
+	}
 	//TODO: error and success handling need some work
-	$.post('/api/importmedia/directory', $('#importmedia-form').serialize())
-	 .success(function() {
-	 	alert('great success!');
-	 })
-	 .error(function(jqXHR) {
-	 	if (jqXHR.status == 404) {
-	 		alert(jqXHR.responseText);
-	 	}
-	 });
+	$.ajax({
+		type: 'POST',
+		url: 'http://localhost:8080/api/importer/',
+		contentType: 'application/json; charset=utf-8',
+		data: $.toJSON(req),
+		dataType: 'text',
+		success: function(){
+			alert('great success!');
+		},
+		error: function(jqXHR){
+			alert(jqXHR.responseText);
+		}
+	});
 
 	return true;
 });
