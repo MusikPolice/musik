@@ -1,111 +1,25 @@
-import json
-import re
-import os
-import random
+from musik import log
 
 import cherrypy
+from musik.db import Album, Artist, Disc, Track
+import musik.web.api.library
 
-from musik import log
-from musik import streaming
-from musik.db import Album, Artist, ImportTask, Track, Disc
+import json
+import random
 
+class Albums():
+	log = None
+	exposed = True
 
-class Import:
-	@cherrypy.expose
-	def directory(self, path):
-		"""Queues the specified path for import into the media library.
+	def __init__(self):
+		self.log = log.Log(__name__)
+
+	def GET(self, *params):
+		"""Assembles an album query by appending query parameters as filters.
+		The result is a query that satisfies all of the parameters that were
+		passed on the url string.
+		Returns the results of the query sorted by title_sort property
 		"""
-		cherrypy.response.headers['Content-Type'] = 'application/json'
-
-		if not path or not os.path.isdir(path):
-			raise cherrypy.HTTPError("404 Not Found", "Couldn't find the path " + str(path) + " on the target system")
-
-		task = ImportTask(path)
-		cherrypy.request.db.add(task)
-
-		# this is an http 200 ok with no data
-		return json.dumps(None)
-
-	@cherrypy.expose
-	def status(self):
-		# gets the number of outstanding importer tasks
-		numtasks = cherrypy.request.db.query(ImportTask).filter(ImportTask.started == None).filter(ImportTask.completed == None).count()
-
-		# get the currently processing task
-		currentTask = cherrypy.request.db.query(ImportTask).filter(ImportTask.started != None).filter(ImportTask.completed == None).first()
-
-		ret = u''
-		if (currentTask != None):
-			ret += u'The importer is currently processing %s.<br />' % unicode(currentTask.uri)
-
-		#TODO: calculate estimated completion time by multiplying average job time by number of outstanding items
-
-		#TODO: return JSON instead of text
-		if numtasks == 0:
-			ret += u'There are no tasks currently pending'
-		else:
-			ret += u'There are %d tasks currently pending' % numtasks
-
-		return ret
-
-
-class OggStream:
-	log = None
-	stream = None
-
-	def __init__(self):
-		self.log = log.Log(__name__)
-
-	@cherrypy.expose
-	def track(self, id):
-		"""Transcodes the track with the specified unique id to ogg vorbis and
-		streams it to the client. Streaming begins immediately, even if the
-		entire file has not yet been transcoded."""
-
-		# look up the track in the database
-		self.log.info(u'OggStream.track called with id %s' % unicode(id))
-		uri = cherrypy.request.db.query(Track).filter(Track.id == id).first().uri
-
-		cherrypy.response.headers['Content-Type'] = 'audio/ogg'
-
-		def yield_data():
-			"""TODO: this function silently eats exceptions, which will just cause the
-			audio stream to end, and the client player to choke. Ideally, we would notify
-			the user of the error as well.
-			"""
-			try:
-				self.log.info(u'OggStream.track trying to open %s for streaming' % unicode(uri))
-				self.stream = streaming.audio_open(uri)
-
-				self.log.info(u'OggStream.track started streaming %s' % unicode(uri))
-				for block in self.stream:
-					yield block
-			except streaming.DecodeError as e:
-				self.log.error(u'Failed to open audio stream %s' % uri)
-			finally:
-				self.log.info(u'OggStream.track streaming is complete. Closing stream.')
-				if self.stream is not None:
-					self.stream.close()
-					self.stream = None
-
-		return yield_data()
-	track._cp_config = {'response.stream': True}
-
-
-# defines an api with a dynamic url scheme composed of /<tag>/<value>/ pairs
-# these pairs are assembled into an SQL query. Each term is combined with the AND operator.
-# unknown <tag> elements are ignored.
-class API:
-	log = None
-	importmedia = Import()
-	stream = OggStream()
-
-	def __init__(self):
-		self.log = log.Log(__name__)
-
-
-	@cherrypy.expose
-	def default(self, *params):
 
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 
@@ -113,35 +27,14 @@ class API:
 		#the remainder are key value pairs of the things to query and their desired ids
 		#split them into a list of dictionary pairs prior to processing
 		query = []
-		for index in range(1, len(params) - 1, 2):
+		for index in range(0, len(params) - 1, 2):
 			query.append(dict([(params[index],params[index + 1])]))
 
-		#figure out data type the user is requesting
-		if params[0] == 'albums':
-			return json.dumps(self.queryAlbums(query))
-		if params[0] == 'artists':
-			return json.dumps(self.queryArtists(query))
-		if params[0] == 'tracks' and params[1] == 'random':
-			#retern a random track
-			tracks = self.queryTracks({})
-			return json.dumps(tracks[random.randint(0, len(tracks) - 1)])
-		if params[0] == 'tracks':
-			return json.dumps(self.queryTracks(query))
-		if params[0] == 'discs':
-			return json.dumps(self.queryDiscs(query))
-
-
-	def queryAlbums(self, params):
-		"""Assembles an album query by appending query parameters as filters.
-		The result is a query that satisfies all of the parameters that were
-		passed on the url string.
-		Returns the results of the query sorted by title_sort property
-		"""
-		self.log.info(u'queryAlbums called with params %s' % unicode(params))
+		self.log.info(u'queryAlbums called with params %s' % unicode(query))
 
 		q = cherrypy.request.db.query(Album)
 
-		for d in params:
+		for d in query:
 			key = d.keys()[0]
 			value = d[key]
 
@@ -175,21 +68,84 @@ class API:
 		album_list = []
 	 	for a in q.order_by(Album.title_sort).all():
 	 		album_list.append(a.as_dict())
-		return album_list
+		return json.dumps(album_list)
 
 
-	def queryDiscs(self, params):
+class Artists():
+	log = None
+	exposed = True
+
+	def __init__(self):
+		self.log = log.Log(__name__)
+
+	def GET(self, *params):
+		"""Assembles an artist query by appending query parameters as filters.
+		The result is a query that satisfies all of the parameters that were
+		passed on the url string.
+		Returns the results of the query sorted by name_sort property
+		"""
+
+		cherrypy.response.headers['Content-Type'] = 'application/json'
+
+		#the first item in the url is the object that is being queried
+		#the remainder are key value pairs of the things to query and their desired ids
+		#split them into a list of dictionary pairs prior to processing
+		query = []
+		for index in range(0, len(params) - 1, 2):
+			query.append(dict([(params[index],params[index + 1])]))
+
+		self.log.info(u'queryArtists called with params %s' % unicode(query))
+
+		q = cherrypy.request.db.query(Artist)
+
+		for d in query:
+			key = d.keys()[0]
+			value = d[key]
+
+			if key == 'id':
+				q = q.filter(Artist.id == value)
+			elif key == 'name':
+				q = q.filter(Artist.name.like('%' + value + '%'))
+			elif key == 'name_sort':
+				q = q.filter(Artist.name_sort.like('%' + value + '%'))
+			elif key == 'musicbrainz_artistid':
+				q = q.filter(Artist.musicbrainz_artistid.like('%' + value + '%'))
+
+		artist_list = []
+	 	for a in q.order_by(Artist.name_sort).all():
+	 		artist_list.append(a.as_dict())
+		return json.dumps(artist_list)
+
+
+class Discs():
+	log = None
+	exposed = True
+
+	def __init__(self):
+		self.log = log.Log(__name__)
+
+	def GET(self, *params):
 		"""Assembles an disc query by appending query parameters as filters.
 		The result is a query that satisfies all of the parameters that were
 		passed on the url string.
 		Returns the results of the query sorted by id property
 		TODO: sort by album
 		"""
-		self.log.info(u'queryDiscs called with params %s' % unicode(params))
+
+		cherrypy.response.headers['Content-Type'] = 'application/json'
+
+		#the first item in the url is the object that is being queried
+		#the remainder are key value pairs of the things to query and their desired ids
+		#split them into a list of dictionary pairs prior to processing
+		query = []
+		for index in range(0, len(params) - 1, 2):
+			query.append(dict([(params[index],params[index + 1])]))
+
+		self.log.info(u'queryDiscs called with params %s' % unicode(query))
 
 		q = cherrypy.request.db.query(Disc)
 
-		for d in params:
+		for d in query:
 			key = d.keys()[0]
 			value = d[key]
 
@@ -207,49 +163,41 @@ class API:
 		disc_list = []
 	 	for d in q.order_by(Disc.id).all():
 	 		disc_list.append(d.as_dict())
-		return disc_list
+		return json.dumps(disc_list)
 
 
-	def queryArtists(self, params):
-		"""Assembles an artist query by appending query parameters as filters.
-		The result is a query that satisfies all of the parameters that were
-		passed on the url string.
-		Returns the results of the query sorted by name_sort property
-		"""
-		self.log.info(u'queryArtists called with params %s' % unicode(params))
+class Tracks():
+	log = None
+	exposed = True
 
-		q = cherrypy.request.db.query(Artist)
+	def __init__(self):
+		self.log = log.Log(__name__)
 
-		for d in params:
-			key = d.keys()[0]
-			value = d[key]
-
-			if key == 'id':
-				q = q.filter(Artist.id == value)
-			elif key == 'name':
-				q = q.filter(Artist.name.like('%' + value + '%'))
-			elif key == 'name_sort':
-				q = q.filter(Artist.name_sort.like('%' + value + '%'))
-			elif key == 'musicbrainz_artistid':
-				q = q.filter(Artist.musicbrainz_artistid.like('%' + value + '%'))
-
-		artist_list = []
-	 	for a in q.order_by(Artist.name_sort).all():
-	 		artist_list.append(a.as_dict())
-		return artist_list
-
-
-	def queryTracks(self, params):
+	def GET(self, *params):
 		"""Assembles an track query by appending query parameters as filters.
 		The result is a query that satisfies all of the parameters that were
 		passed on the url string.
 		Returns the results of the query sorted by title_sort property
 		"""
-		self.log.info(u'queryTracks called with params %s' % unicode(params))
+
+		cherrypy.response.headers['Content-Type'] = 'application/json'
+
+		#catch random track requests
+		if len(params) == 1 and params[0] == 'random':
+			return self.random_track()
+
+		#the first item in the url is the object that is being queried
+		#the remainder are key value pairs of the things to query and their desired ids
+		#split them into a list of dictionary pairs prior to processing
+		query = []
+		for index in range(0, len(params) - 1, 2):
+			query.append(dict([(params[index],params[index + 1])]))
+
+		self.log.info(u'queryTracks called with params %s' % unicode(query))
 
 		q = cherrypy.request.db.query(Track)
 
-		for d in params:
+		for d in query:
 			key = d.keys()[0]
 			value = d[key]
 
@@ -319,4 +267,16 @@ class API:
 		track_list = []
 		for a in q.order_by(Track.title_sort).all():
 			track_list.append(a.as_dict())
-		return track_list
+		return json.dumps(track_list)
+
+
+	def random_track(self):
+		"""Returns a random track from the library."""
+
+		cherrypy.response.headers['Content-Type'] = 'application/json'
+		self.log.info(u'RandomTracks called.')
+
+		q = cherrypy.request.db.query(Track).all()
+		track = q[random.randint(0, len(q) - 1)]
+
+		return json.dumps(track.as_dict())

@@ -54,3 +54,7 @@ class Log:
 	def error(self, msg):
 		"""Writes an error-level message to the log"""
 		self.log.error(msg)
+
+	def warning(self, msg):
+		"""Writes a warning-level message to the log"""
+		self.log.warning(msg)

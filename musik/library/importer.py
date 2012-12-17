@@ -40,9 +40,9 @@ class ImportThread(threading.Thread):
 			# process 'till you drop
 			while self.running:
 
-				# find the first unprocessed import task
 				try:
-					task = self.sa_session.query(ImportTask).filter(ImportTask.started == None).order_by(ImportTask.created).first()
+					# find the first unprocessed import task - this is a serial operation!
+					task = self.sa_session.query(ImportTask).filter(ImportTask.completed == None).order_by(ImportTask.created).first()
 				except OperationalError as ex:
 					# Ran into this when my SQLite database was locked.
 					self.log.error(u'Operational error accessing database. Ensure it is not open by another process.')
@@ -103,7 +103,7 @@ class ImportThread(threading.Thread):
 						self.sa_session.add(newtask)
 						self.sa_session.commit()
 					else:
-						self.log.debug(u'Ignoring file %s', newuri)
+						self.log.info(u'Ignoring file %s' % newuri)
 
 
 	# returns True if the mime type of the specified uri is supported
@@ -118,7 +118,7 @@ class ImportThread(threading.Thread):
 
 
 	def importFile(self, uri):
-		self.log.debug(u'ImportFile called with uri %s', uri)
+		self.log.info(u'ImportFile called with uri %s' % uri)
 
 		mtype = mimetypes.guess_type(uri)[0]
 		if mtype != u'audio/mpeg':
@@ -133,7 +133,7 @@ class ImportThread(threading.Thread):
 		Returns a fully populated musik.db.Track object that has already been
 		committed to the database.
 		"""
-		self.log.debug(u'createTrack called with uri %s', uri)
+		self.log.info(u'createTrack called with uri %s' % uri)
 
 		# check that the uri doesn't already exist in our library
 		try:
@@ -178,7 +178,7 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(artist)
 			elif track.artist.id != artist.id:
 				# TODO: conflict!
-				self.log.warning(u'Artist conflict for track %s: %s != %s', track, track.artist, artist)
+				self.log.warning(u'Artist conflict for track %s: %s != %s' % (track, track.artist, artist))
 
 		# album artist - use the artist if metadata isn't set
 		album_artist = self.findArtist(metadata['albumartist'], metadata['albumartistsort'])
@@ -188,14 +188,14 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(album_artist)
 			elif track.album_artist.id != album_artist.id:
 				# TODO: conflict!
-				self.log.warning(u'Album artist conflict for track %s: %s != %s', track, track.album_artist, album_artist)
+				self.log.warning(u'Album artist conflict for track %s: %s != %s' % (track, track.album_artist, album_artist))
 		elif artist != None:
 			if track.album_artist == None:
 				track.album_artist = artist
 				self.sa_session.add(artist)
 			elif track.album_artist.id != artist.id:
 				# TODO: conflict!
-				self.log.warning(u'Album artist conflict for track %s: %s != %s', track, track.album_artist, artist)
+				self.log.warning(u'Album artist conflict for track %s: %s != %s' % (track, track.album_artist, artist))
 
 		# arranger
 		arranger = self.findArtist(metadata['arranger'])
@@ -205,7 +205,7 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(arranger)
 			elif track.arranger.id != arranger.id:
 				# TODO: conflict!
-				self.log.warning(u'Arranger conflict for track %s: %s != %s', track, track.arranger, arranger)
+				self.log.warning(u'Arranger conflict for track %s: %s != %s' % (track, track.arranger, arranger))
 
 		# author
 		author = self.findArtist(metadata['author'])
@@ -215,7 +215,7 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(author)
 			elif track.author.id != author.id:
 				# TODO: conflict!
-				self.log.warning(u'Author conflict for track %s: %s != %s', track, track.author, author)
+				self.log.warning(u'Author conflict for track %s: %s != %s' % (track, track.author, author))
 
 		# composer
 		composer = self.findArtist(metadata['composer'], metadata['composersort'])
@@ -225,7 +225,7 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(composer)
 			elif track.composer.id != composer.id:
 				# TODO: conflict!
-				self.log.warning(u'Composer conflict for track %s: %s != %s', track, track.composer, composer)
+				self.log.warning(u'Composer conflict for track %s: %s != %s' % (track, track.composer, composer))
 
 		# conductor
 		conductor = self.findArtist(metadata['conductor'])
@@ -235,7 +235,7 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(conductor)
 			elif track.conductor.id != conductor.id:
 				# TODO: conflict!
-				self.log.warning(u'Conductor conflict for track %s: %s != %s', track, track.conductor, conductor)
+				self.log.warning(u'Conductor conflict for track %s: %s != %s' % (track, track.conductor, conductor))
 
 		# lyricist
 		lyricist = self.findArtist(metadata['lyricist'])
@@ -245,7 +245,7 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(lyricist)
 			elif track.lyricist.id != lyricist.id:
 				# TODO: conflict!
-				self.log.warning(u'Lyricist conflict for track %s: %s != %s', track, track.lyricist, lyricist)
+				self.log.warning(u'Lyricist conflict for track %s: %s != %s' % (track, track.lyricist, lyricist))
 
 		# performer
 		performer = self.findArtist(metadata['performer'])
@@ -255,7 +255,7 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(performer)
 			elif track.performer.id != performer.id:
 				# TODO: conflict!
-				self.log.warning(u'Performer conflict for track %s: %s != %s', track, track.performer, performer)
+				self.log.warning(u'Performer conflict for track %s: %s != %s' % (track, track.performer, performer))
 
 		# album
 		album = self.findAlbum(metadata['album'], metadata['albumsort'], metadata['musicbrainz_albumid'], track.artist, metadata)
@@ -265,7 +265,7 @@ class ImportThread(threading.Thread):
 				self.sa_session.add(album)
 			elif track.album.id != album.id:
 				# TODO: conflict!
-				self.log.warning(u'Album conflict for track %s: %s != %s', track, track.album, album)
+				self.log.warning(u'Album conflict for track %s: %s != %s' % (track, track.album, album))
 
 		# disc
 		if track.album != None:
@@ -283,7 +283,7 @@ class ImportThread(threading.Thread):
 				track.bpm = metadata['bpm']
 			elif track.bpm != metadata['bpm']:
 				# TODO: conflict!
-				self.log.warning(u'Track bpm conflict for track %s: %s != %s', track, track.bpm, metadata['bpm'])
+				self.log.warning(u'Track bpm conflict for track %s: %s != %s' % (track, track.bpm, metadata['bpm']))
 
 		#copyright
 		if metadata['copyright'] != None:
@@ -291,7 +291,7 @@ class ImportThread(threading.Thread):
 				track.copyright = metadata['copyright']
 			elif track.copyright != metadata['copyright']:
 				# TODO: conflict!
-				self.log.warning(u'Track copyright conflict for track %s: %s != %s', track, track.copyright, metadata['copyright'])
+				self.log.warning(u'Track copyright conflict for track %s: %s != %s' % (track, track.copyright, metadata['copyright']))
 
 		#date
 		if metadata['date'] != None:
@@ -299,7 +299,7 @@ class ImportThread(threading.Thread):
 				track.date = metadata['date']
 			elif track.date != metadata['date']:
 				# TODO: conflict!
-				self.log.warning(u'Track date conflict for track %s: %s != %s', track, track.date, metadata['date'])
+				self.log.warning(u'Track date conflict for track %s: %s != %s' % (track, track.date, metadata['date']))
 
 		#encodedby
 		if metadata['encodedby'] != None:
@@ -307,7 +307,7 @@ class ImportThread(threading.Thread):
 				track.encodedby = metadata['encodedby']
 			elif track.encodedby != metadata['encodedby']:
 				# TODO: conflict!
-				self.log.warning(u'Track encodedby conflict for track %s: %s != %s', track, track.encodedby, metadata['encodedby'])
+				self.log.warning(u'Track encodedby conflict for track %s: %s != %s' % (track, track.encodedby, metadata['encodedby']))
 
 		#genre
 		if metadata['genre'] != None:
@@ -315,7 +315,7 @@ class ImportThread(threading.Thread):
 				track.genre = metadata['genre']
 			elif track.genre != metadata['genre']:
 				# TODO: conflict!
-				self.log.warning(u'Track genre conflict for track %s: %s != %s', track, track.genre, metadata['genre'])
+				self.log.warning(u'Track genre conflict for track %s: %s != %s' % (track, track.genre, metadata['genre']))
 
 		#isrc
 		if metadata['isrc'] != None:
@@ -323,7 +323,7 @@ class ImportThread(threading.Thread):
 				track.isrc = metadata['isrc']
 			elif track.isrc != metadata['isrc']:
 				# TODO: conflict!
-				self.log.warning(u'Track isrc conflict for track %s: %s != %s', track, track.isrc, metadata['isrc'])
+				self.log.warning(u'Track isrc conflict for track %s: %s != %s' % (track, track.isrc, metadata['isrc']))
 
 		#length
 		if metadata['length'] != None:
@@ -331,7 +331,7 @@ class ImportThread(threading.Thread):
 				track.length = metadata['length']
 			elif track.length != metadata['length']:
 				# TODO: conflict!
-				self.log.warning(u'Track length conflict for track %s: %s != %s', track, track.length, metadata['length'])
+				self.log.warning(u'Track length conflict for track %s: %s != %s' % (track, track.length, metadata['length']))
 
 		#mood
 		if metadata['mood'] != None:
@@ -339,7 +339,7 @@ class ImportThread(threading.Thread):
 				track.mood = metadata['mood']
 			elif track.mood != metadata['mood']:
 				# TODO: conflict!
-				self.log.warning(u'Track mood conflict for track %s: %s != %s', track, track.mood, metadata['mood'])
+				self.log.warning(u'Track mood conflict for track %s: %s != %s' % (track, track.mood, metadata['mood']))
 
 		#musicbrainz_trackid
 		if metadata['musicbrainz_trackid'] != None:
@@ -347,7 +347,7 @@ class ImportThread(threading.Thread):
 				track.musicbrainz_trackid = metadata['musicbrainz_trackid']
 			elif track.musicbrainz_trackid != metadata['musicbrainz_trackid']:
 				# TODO: conflict!
-				self.log.warning(u'Track musicbrainz_trackid conflict for track %s: %s != %s', track, track.musicbrainz_trackid, metadata['musicbrainz_trackid'])
+				self.log.warning(u'Track musicbrainz_trackid conflict for track %s: %s != %s' % (track, track.musicbrainz_trackid, metadata['musicbrainz_trackid']))
 
 		#musicbrainz_trmid
 		if metadata['musicbrainz_trmid'] != None:
@@ -355,7 +355,7 @@ class ImportThread(threading.Thread):
 				track.musicbrainz_trmid = metadata['musicbrainz_trmid']
 			elif track.musicbrainz_trmid != metadata['musicbrainz_trmid']:
 				# TODO: conflict!
-				self.log.warning(u'Track musicbrainz_trmid conflict for track %s: %s != %s', track, track.musicbrainz_trmid, metadata['musicbrainz_trmid'])
+				self.log.warning(u'Track musicbrainz_trmid conflict for track %s: %s != %s' % (track, track.musicbrainz_trmid, metadata['musicbrainz_trmid']))
 
 		#musicip_fingerprint
 		if metadata['musicip_fingerprint'] != None:
@@ -363,7 +363,7 @@ class ImportThread(threading.Thread):
 				track.musicip_fingerprint = metadata['musicip_fingerprint']
 			elif track.musicip_fingerprint != metadata['musicip_fingerprint']:
 				# TODO: conflict!
-				self.log.warning(u'Track musicip_fingerprint conflict for track %s: %s != %s', track, track.musicip_fingerprint, metadata['musicip_fingerprint'])
+				self.log.warning(u'Track musicip_fingerprint conflict for track %s: %s != %s' % (track, track.musicip_fingerprint, metadata['musicip_fingerprint']))
 
 		#musicip_puid
 		if metadata['musicip_puid'] != None:
@@ -371,7 +371,7 @@ class ImportThread(threading.Thread):
 				track.musicip_puid = metadata['musicip_puid']
 			elif track.musicip_puid != metadata['musicip_puid']:
 				# TODO: conflict!
-				self.log.warning(u'Track musicip_puid conflict for track %s: %s != %s', track, track.musicip_puid, metadata['musicip_puid'])
+				self.log.warning(u'Track musicip_puid conflict for track %s: %s != %s' % (track, track.musicip_puid, metadata['musicip_puid']))
 
 		# title
 		if metadata['title'] != None:
@@ -379,7 +379,7 @@ class ImportThread(threading.Thread):
 				track.title = metadata['title']
 			elif track.title != metadata['title']:
 				# TODO: conflict!
-				self.log.warning(u'Track title conflict for track %s: %s != %s', track, track.title, metadata['title'])
+				self.log.warning(u'Track title conflict for track %s: %s != %s' % (track, track.title, metadata['title']))
 
 		# titlesort
 		if metadata['titlesort'] != None:
@@ -387,7 +387,7 @@ class ImportThread(threading.Thread):
 				track.title_sort = metadata['titlesort']
 			elif track.title_sort != metadata['titlesort']:
 				# TODO: conflict!
-				self.log.warning(u'Track titlesort conflict for track %s: %s != %s', track, track.title_sort, metadata['titlesort'])
+				self.log.warning(u'Track titlesort conflict for track %s: %s != %s' % (track, track.title_sort, metadata['titlesort']))
 
 		# tracknumber
 		if metadata['tracknumber'] != None:
@@ -395,7 +395,7 @@ class ImportThread(threading.Thread):
 				track.tracknumber = metadata['tracknumber']
 			elif track.tracknumber != metadata['tracknumber']:
 				# TODO: conflict!
-				self.log.warning(u'Track tracknumber conflict for track %s: %s != %s', track, track.tracknumber, metadata['tracknumber'])
+				self.log.warning(u'Track tracknumber conflict for track %s: %s != %s' % (track, track.tracknumber, metadata['tracknumber']))
 
 		# version
 		if metadata['version'] != None:
@@ -403,7 +403,7 @@ class ImportThread(threading.Thread):
 				track.subtitle = metadata['version']
 			elif track.subtitle != metadata['version']:
 				# TODO: conflict!
-				self.log.warning(u'Track version conflict for track %s: %s != %s', track, track.subtitle, metadata['version'])
+				self.log.warning(u'Track version conflict for track %s: %s != %s' % (track, track.subtitle, metadata['version']))
 
 		# website
 		if metadata['website'] != None:
@@ -411,7 +411,7 @@ class ImportThread(threading.Thread):
 				track.website = metadata['website']
 			elif track.website != metadata['website']:
 				# TODO: conflict!
-				self.log.warning(u'Track website conflict for track %s: %s != %s', track, track.website, metadata['website'])
+				self.log.warning(u'Track website conflict for track %s: %s != %s' % (track, track.website, metadata['website']))
 
 		# get id3 data from the file
 		id3 = MP3(uri)
@@ -489,33 +489,33 @@ class ImportThread(threading.Thread):
 			if artist != None:
 				# found an existing artist in our db - compare its metadata
 				# to the new info. Always prefer existing metadata over new.
-				self.log.debug(u'Artist name musicbrainz_artistid search found existing artist %s in database' % artist)
+				self.log.info(u'Artist name musicbrainz_artistid search found existing artist %s in database' % artist)
 				if name != None:
 					if artist.name == None:
 						artist.name = name
 					elif artist.name != name:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Artist name conflict for musicbrainz_artistid %s: %s != %s', artist.musicbrainz_artistid, artist.name, name)
+						self.log.warning(u'Artist name conflict for musicbrainz_artistid %s: %s != %s' % (artist.musicbrainz_artistid, artist.name, name))
 				if name_sort != None:
 					if artist.name_sort == None:
 						artist.name_sort = name_sort
 					elif artist.name_sort != name_sort:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Artist sort name conflict for musicbrainz_artistid %s: %s != %s', artist.musicbrainz_artistid, artist.name_sort, name_sort)
+						self.log.warning(u'Artist sort name conflict for musicbrainz_artistid %s: %s != %s' % (artist.musicbrainz_artistid, artist.name_sort, name_sort))
 
 		if artist == None and name != None:
 			# if we don't have musicbrainz_artistid or there is no matching
 			# artist in our db, try to find an existing artist by name
 			artist = self.sa_session.query(Artist).filter(Artist.name == name).first()
 			if artist != None:
-				self.log.debug(u'Artist name search found existing artist %s in database' % artist)
+				self.log.info(u'Artist name search found existing artist %s in database' % artist)
 				# found an existing artist in our db - compare its metadata
 				# to the new info. Always prefer existing metadata over new.
 				if name_sort != None:
 					if artist.name_sort == None:
 						artist.name_sort = name_sort
 					elif artist.name_sort != name_sort:
-						self.log.warning(u'Artist sort name conflict for artist %s: %s != %s', artist.name, artist.name_sort, name_sort)
+						self.log.warning(u'Artist sort name conflict for artist %s: %s != %s' % (artist.name, artist.name_sort, name_sort))
 			else:
 				# an existing artist could not be found in our db. Make a new one
 				artist = Artist(name)
@@ -524,7 +524,7 @@ class ImportThread(threading.Thread):
 				if musicbrainz_id != None:
 					artist.musicbrainz_artistid = musicbrainz_id
 				# add the artist object to the DB
-				self.log.debug(u'Artist not found in database. Created new artist %s' % artist)
+				self.log.info(u'Artist not found in database. Created new artist %s' % artist)
 
 		# return the artist that we found and/or created
 		return artist
@@ -545,25 +545,25 @@ class ImportThread(threading.Thread):
 			if album != None:
 				# found an existing album in our db - compare its metadata
 				# to the new info. Always prefer existing metadata over new.
-				self.log.debug(u'Album musicbrainz_albumid search found existing album %s in database' % album)
+				self.log.info(u'Album musicbrainz_albumid search found existing album %s in database' % album)
 				if title != None:
 					if album.title == None:
 						album.title = title
 					elif album.title != title:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Album title conflict for musicbrainz_albumid %s: %s != %s', album.musicbrainz_albumid, album.title, title)
+						self.log.warning(u'Album title conflict for musicbrainz_albumid %s: %s != %s' % (album.musicbrainz_albumid, album.title, title))
 				if title_sort != None:
 					if album.title_sort == None:
 						album.title_sort = title_sort
 					elif album.title_sort != title_sort:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Album sort title conflict for musicbrainz_albumid %s: %s != %s', album.musicbrainz_albumid, album.title_sort, title_sort)
+						self.log.warning(u'Album sort title conflict for musicbrainz_albumid %s: %s != %s' % (album.musicbrainz_albumid, album.title_sort, title_sort))
 				if artist != None:
 					if album.artist == None:
 						album.artist = artist
 					elif album.artist_id != artist.id:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Album artist conflict for musicbrainz_albumid %s: %s != %s', album.musicbrainz_albumid, album.artist, artist)
+						self.log.warning(u'Album artist conflict for musicbrainz_albumid %s: %s != %s' % (album.musicbrainz_albumid, album.artist, artist))
 
 		if album == None and title != None and artist != None:
 			# if we don't have musicbrainz_albumid or there is no matching
@@ -572,12 +572,12 @@ class ImportThread(threading.Thread):
 			if album != None:
 				# found an existing album in our db - compare its metadata
 				# to the new info. Always prefer existing metadata over new.
-				self.log.debug(u'Album title/artist search found existing album %s in database' % album)
+				self.log.info(u'Album title/artist search found existing album %s in database' % album)
 				if title_sort != None:
 					if album.title_sort == None:
 						album.title_sort = title_sort
 					elif album.title_sort != title_sort:
-						self.log.warning(u'Album sort title conflict for album %s: %s != %s', album.title, album.title_sort, title_sort)
+						self.log.warning(u'Album sort title conflict for album %s: %s != %s' % (album.title, album.title_sort, title_sort))
 			else:
 				# an existing album could not be found in our db. Make a new one
 				album = Album(title)
@@ -587,7 +587,7 @@ class ImportThread(threading.Thread):
 					album.musicbrainz_albumid = musicbrainz_id
 				if artist != None:
 					album.artist = artist
-				self.log.debug(u'Album not found in database. Created new album %s' % album)
+				self.log.info(u'Album not found in database. Created new album %s' % album)
 
 		# we either found or created the album. now verify its metadata
 		if album != None and metadata != None:
@@ -596,49 +596,49 @@ class ImportThread(threading.Thread):
 					album.asin = metadata['asin']
 				elif album.asin != metadata['asin']:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album ASIN conflict for album %s: %s != %s', album, album.asin, metadata['asin'])
+					self.log.warning(u'Album ASIN conflict for album %s: %s != %s' % (album, album.asin, metadata['asin']))
 			if metadata['barcode'] != None:
 				if album.barcode == None:
 					album.barcode = metadata['barcode']
 				elif album.barcode != metadata['barcode']:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album barcode conflict for album %s: %s != %s', album, album.barcode, metadata['barcode'])
+					self.log.warning(u'Album barcode conflict for album %s: %s != %s' % (album, album.barcode, metadata['barcode']))
 			if metadata['compilation'] != None:
 				if album.compilation == None:
 					album.compilation = metadata['compilation']
 				elif album.compilation != metadata['compilation']:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album compilation conflict for album %s: %s != %s', album, album.compilation, metadata['compilation'])
+					self.log.warning(u'Album compilation conflict for album %s: %s != %s' % (album, album.compilation, metadata['compilation']))
 			if metadata['media'] != None:
 				if album.media_type == None:
 					album.media_type = metadata['media']
 				if album.media_type != metadata['media']:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album media type conflict for album %s: %s != %s', album, album.media_type, metadata['media'])
+					self.log.warning(u'Album media type conflict for album %s: %s != %s' % (album, album.media_type, metadata['media']))
 			if metadata['musicbrainz_albumstatus'] != None:
 				if album.musicbrainz_albumstatus == None:
 					album.musicbrainz_albumstatus = metadata['musicbrainz_albumstatus']
 				elif album.musicbrainz_albumstatus != metadata['musicbrainz_albumstatus']:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album musicbrainz_albumstatus conflict for album %s: %s != %s', album, album.musicbrainz_albumstatus, metadata['musicbrainz_albumstatus'])
+					self.log.warning(u'Album musicbrainz_albumstatus conflict for album %s: %s != %s' % (album, album.musicbrainz_albumstatus, metadata['musicbrainz_albumstatus']))
 			if metadata['musicbrainz_albumtype'] != None:
 				if album.musicbrainz_albumtype == None:
 					album.musicbrainz_albumtype = metadata['musicbrainz_albumtype']
 				elif album.musicbrainz_albumtype != metadata['musicbrainz_albumtype']:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album musicbrainz_albumtype conflict for album %s: %s != %s', album, album.musicbrainz_albumtype, metadata['musicbrainz_albumtype'])
+					self.log.warning(u'Album musicbrainz_albumtype conflict for album %s: %s != %s' % (album, album.musicbrainz_albumtype, metadata['musicbrainz_albumtype']))
 			if metadata['organization'] != None:
 				if album.organization == None:
 					album.organization = metadata['organization']
 				elif album.organization != metadata['organization']:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album organization conflict for album %s: %s != %s', album, album.organization, metadata['organization'])
+					self.log.warning(u'Album organization conflict for album %s: %s != %s' % (album, album.organization, metadata['organization']))
 			if metadata['releasecountry'] != None:
 				if album.releasecountry == None:
 					album.releasecountry = metadata['releasecountry']
 				elif album.releasecountry != metadata['releasecountry']:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album release country conflict for album %s: %s != %s', album, album.releasecountry, metadata['releasecountry'])
+					self.log.warning(u'Album release country conflict for album %s: %s != %s' % (album, album.releasecountry, metadata['releasecountry']))
 
 		return album
 
@@ -662,25 +662,25 @@ class ImportThread(threading.Thread):
 		# if we found a disc in the existing album's collection that matches
 		# the specified criteria, update any missing metadata
 		if disc != None:
-			self.log.debug(u'Disc musicbrainz_discid/discnumber search found existing disc %s in database' % disc)
+			self.log.info(u'Disc musicbrainz_discid/discnumber search found existing disc %s in database' % disc)
 			if discnumber != None:
 				if d.discnumber == None:
 					d.discnumber = discnumber
 				elif d.discnumber != discnumber:
 					# TODO: conflict!
-					self.log.warning(u'Disc number conflict for disc %s: %s != %s', disc, disc.discnumber, discnumber)
+					self.log.warning(u'Disc number conflict for disc %s: %s != %s' % (disc, disc.discnumber, discnumber))
 			if discsubtitle != None:
 				if d.subtitle == None:
 					d.subtitle = discsubtitle
 				elif d.subtitle != discsubtitle:
 					# TODO: Conflict!
-					self.log.warning(u'Disc subtitle conflict for disc %s: %s != %s', disc, disc.subtitle, discsubtitle)
+					self.log.warning(u'Disc subtitle conflict for disc %s: %s != %s' % (disc, disc.subtitle, discsubtitle))
 			if musicbrainz_id != None:
 				if d.musicbrainz_discid == None:
 					d.musicbrainz_discid = musicbrainz_id
 				elif d.musicbrainz_discid != musicbrainz_id:
 					# TODO: conflict!
-					self.log.warning(u'Disc musicbrainz_discid conflict for disc %s: %s != %s', disc, disc.musicbrainz_discid, musicbrainz_id)
+					self.log.warning(u'Disc musicbrainz_discid conflict for disc %s: %s != %s' % (disc, disc.musicbrainz_discid, musicbrainz_id))
 
 		if disc == None and musicbrainz_id != None:
 			# search for an existing unlinked disc in the database.
@@ -688,44 +688,44 @@ class ImportThread(threading.Thread):
 			# some other tagger has already verified the metadata.
 			disc = self.sa_session.query(Disc).filter(Disc.musicbrainz_discid == musicbrainz_id).first()
 			if disc != None:
-				self.log.debug(u'Disc musicbrainz_discid search found existing disc %s in database' % disc)
+				self.log.info(u'Disc musicbrainz_discid search found existing disc %s in database' % disc)
 				if album != None:
 					if disc.album == None:
 						disc.album = album
 					elif disc.album.id != album.id:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Disc album conflict for disc %s: %s != %s', disc, disc.album, album)
+						self.log.warning(u'Disc album conflict for disc %s: %s != %s' % (disc, disc.album, album))
 				if discnumber != None:
 					if disc.discnumber == None:
 						disc.discnumber = discnumber
 					elif disc.discnumber != discnumber:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Disc number conflict for disc %s: %s != %s', disc, disc.discnumber, discnumber)
+						self.log.warning(u'Disc number conflict for disc %s: %s != %s' % (disc, disc.discnumber, discnumber))
 				if discsubtitle != None:
 					if disc.discsubtitle == None:
 						disc.discsubtitle = discsubtitle
 					elif disc.discsubtitle != discsubtitle:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Disc subtitle conflict for disc %s: %s != %s', disc, disc.discsubtitle, discsubtitle)
+						self.log.warning(u'Disc subtitle conflict for disc %s: %s != %s' % (disc, disc.discsubtitle, discsubtitle))
 
 		if disc == None and album != None and discnumber != None:
 			# musicbrainz_discid wasn't supplied or didn't yield an existing album.
 			# try to search with album id and disc number instead.
 			disc = self.sa_session.query(Disc).filter(Disc.album_id == album.id, Disc.discnumber == discnumber).first()
 			if disc != None:
-				self.log.debug(u'Disc album/number search found existing disc %s in database' % disc)
+				self.log.info(u'Disc album/number search found existing disc %s in database' % disc)
 				if discsubtitle != None:
 					if disc.discsubtitle == None:
 						disc.discsubtitle = discsubtitle
 					elif disc.discsubtitle != discsubtitle:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Disc subtitle conflict for disc %s: %s != %s', disc, disc.discsubtitle, discsubtitle)
+						self.log.warning(u'Disc subtitle conflict for disc %s: %s != %s' % (disc, disc.discsubtitle, discsubtitle))
 				if musicbrainz_id != None:
 					if disc.musicbrainz_discid == None:
 						disc.musicbrainz_discid = musicbrainz_id
 					elif disc.musicbrainz_discid != musicbrainz_id:
 						# TODO: conflict -> schedule musicbrainz task!
-						self.log.warning(u'Disc musicbrainz_discid conflict for disc %s: %s != %s', disc, disc.musicbrainz_discid, musicbrainz_id)
+						self.log.warning(u'Disc musicbrainz_discid conflict for disc %s: %s != %s' % (disc, disc.musicbrainz_discid, musicbrainz_id))
 			else:
 				# could not find the disc in question. Create a new one instead
 				disc = Disc(discnumber)
@@ -735,7 +735,7 @@ class ImportThread(threading.Thread):
 					disc.discsubtitle = discsubtitle
 				if musicbrainz_id != None:
 					disc.musicbrainz_discid = musicbrainz_id
-				self.log.debug(u'Could not find disc in database. Created new disc %s' % disc)
+				self.log.info(u'Could not find disc in database. Created new disc %s' % disc)
 				self.sa_session.add(disc)
 
 		return disc

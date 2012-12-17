@@ -7,7 +7,7 @@ import os
 from musik import config
 from musik import log
 import musik.library.importer
-from musik.web import application
+import musik.web
 
 
 # cleans up and safely stops the application
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
 	# this is a blocking call
 	log.info(u'Starting Web App')
-	app = application.MusikWebApplication(threads=threads)
+	app = musik.web.WebService(threads=threads)
 
 	# start the web app
 	port = config.get_server_port()

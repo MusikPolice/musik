@@ -43,6 +43,10 @@ class ImportTask(Base):
 	def __str__(self):
 		return unicode(self).encode('utf-8')
 
+	def as_dict(self):
+		"""Returns a representation of the task as a dictionary"""
+		return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Artist(Base):
 	"""An artist is the person or persons responsible for creating some
@@ -217,7 +221,7 @@ class Track(Base):
 	def as_dict(self):
 		"""Returns a representation of the track as a dictionary"""
 		fields = {c.name: getattr(self, c.name) for c in self.__table__.columns}
-		fields['stream_uri'] = '%s/api/stream/track/%s' % (config.get_site_root(), str(fields['id']))
+		fields['stream_uri'] = '%s/api/stream/%s' % (config.get_site_root(), str(fields['id']))
 		return fields
 
 
