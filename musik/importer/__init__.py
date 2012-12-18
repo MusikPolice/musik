@@ -5,14 +5,11 @@ import re
 import threading
 import time
 
-from mutagen.easyid3 import EasyID3
-from mutagen.id3 import ID3NoHeaderError
-from mutagen.mp3 import MP3
-
 from sqlalchemy.exc import OperationalError
 
 from musik import log
 from musik.db import DatabaseWrapper, ImportTask, Track, Album, Artist, Disc
+from musik.importer.mediafile import MediaFile
 from musik.util import EasygoingDictionary
 
 class ImportThread(threading.Thread):
@@ -40,13 +37,12 @@ class ImportThread(threading.Thread):
 			# process 'till you drop
 			while self.running:
 
-				try:
-					# find the first unprocessed import task - this is a serial operation!
-					task = self.sa_session.query(ImportTask).filter(ImportTask.completed == None).order_by(ImportTask.created).first()
-				except OperationalError as ex:
-					# Ran into this when my SQLite database was locked.
-					self.log.error(u'Operational error accessing database. Ensure it is not open by another process.')
-					break
+				# find the first uncompleted import task. This limits the
+				# importer to being single-threaded, but ensures that jobs
+				# that are stopped while in progress will complete on next
+				# startup.
+				task = self.sa_session.query(ImportTask).filter(ImportTask.completed == None).order_by(ImportTask.created).first()
+
 				if task != None:
 					# start processing it
 					task.started = datetime.utcnow()
@@ -56,10 +52,10 @@ class ImportThread(threading.Thread):
 					# process the task
 					if os.path.isdir(task.uri):
 						self.log.info(u'Importing directory %s' % task.uri)
-						self.importDirectory(task.uri)
+						self.import_directory(task.uri)
 					elif os.path.isfile(task.uri):
 						self.log.info(u'Importing file %s' % task.uri)
-						self.importFile(task.uri)
+						self.import_file(task.uri)
 					else:
 						self.log.warning(u'Unrecognized URI %s' % task.uri)
 
@@ -80,11 +76,11 @@ class ImportThread(threading.Thread):
 	# in practice, this is a breadth-first searche over the specified directory and its
 	# subdirectories that places appropriate files back into the import queue
 	# TODO: directory permissions. Make sure that we can read before we try to
-	def importDirectory(self, uri):
-		searchQueue = [uri]
-		while len(searchQueue) > 0:
+	def import_directory(self, uri):
+		search_queue = [uri]
+		while len(search_queue) > 0:
 			# this is the current working directory
-			baseuri = searchQueue.pop(0)
+			baseuri = search_queue.pop(0)
 			if os.path.isdir(baseuri) == False:
 				continue
 
@@ -95,9 +91,9 @@ class ImportThread(threading.Thread):
 				# if we found a directory, put it back on the queue. otherwise, process it
 				newuri = os.path.join(baseuri, subdir)
 				if os.path.isdir(newuri):
-					searchQueue.append(newuri)
+					search_queue.append(newuri)
 				elif os.path.isfile(newuri):
-					if self.isMimeTypeSupported(newuri):
+					if self.is_mime_type_supported(newuri):
 						# create a new import task for useful files
 						newtask = ImportTask(newuri)
 						self.sa_session.add(newtask)
@@ -109,7 +105,7 @@ class ImportThread(threading.Thread):
 	# returns True if the mime type of the specified uri is supported
 	# this should only support audio files
 	# TODO: query gstreamer (or whatever other backend we're using) to determine support up front
-	def isMimeTypeSupported(self, uri):
+	def is_mime_type_supported(self, uri):
 		mtype = mimetypes.guess_type(uri)[0]
 		if mtype in (u'audio/mpeg', u'audio/flac', u'audio/ogg', u'audio/x-wav'):
 			return True
@@ -117,23 +113,23 @@ class ImportThread(threading.Thread):
 			return False
 
 
-	def importFile(self, uri):
-		self.log.info(u'ImportFile called with uri %s' % uri)
+	def import_file(self, uri):
+		self.log.info(u'import_file called with uri %s' % uri)
 
 		mtype = mimetypes.guess_type(uri)[0]
 		if mtype != u'audio/mpeg':
 			self.log.info(u'Unsupported mime type %s. Ignoring file.' % mtype)
 
 		# Try to read the metadata appropriately.
-		self.createTrack(uri)
+		self.import_track(uri)
 
 
-	def createTrack(self, uri):
+	def import_track(self, uri):
 		"""Creates a track object out of the specified URI.
 		Returns a fully populated musik.db.Track object that has already been
 		committed to the database.
 		"""
-		self.log.info(u'createTrack called with uri %s' % uri)
+		self.log.info(u'import_track called with uri %s' % uri)
 
 		# check that the uri doesn't already exist in our library
 		try:
@@ -171,7 +167,7 @@ class ImportThread(threading.Thread):
 				metadata[key] = easyid3[key]
 
 		# artist
-		artist = self.findArtist(metadata['artist'], metadata['artistsort'], metadata['musicbrainz_artistid'])
+		artist = self.find_artist(metadata['artist'], metadata['artistsort'], metadata['musicbrainz_artistid'])
 		if artist != None:
 			if track.artist == None:
 				track.artist = artist
@@ -181,7 +177,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Artist conflict for track %s: %s != %s' % (track, track.artist, artist))
 
 		# album artist - use the artist if metadata isn't set
-		album_artist = self.findArtist(metadata['albumartist'], metadata['albumartistsort'])
+		album_artist = self.find_artist(metadata['albumartist'], metadata['albumartistsort'])
 		if album_artist != None:
 			if track.album_artist == None:
 				track.album_artist = album_artist
@@ -198,7 +194,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Album artist conflict for track %s: %s != %s' % (track, track.album_artist, artist))
 
 		# arranger
-		arranger = self.findArtist(metadata['arranger'])
+		arranger = self.find_artist(metadata['arranger'])
 		if arranger != None:
 			if track.arranger == None:
 				track.arranger = arranger
@@ -208,7 +204,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Arranger conflict for track %s: %s != %s' % (track, track.arranger, arranger))
 
 		# author
-		author = self.findArtist(metadata['author'])
+		author = self.find_artist(metadata['author'])
 		if author != None:
 			if track.author == None:
 				track.author = author
@@ -218,7 +214,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Author conflict for track %s: %s != %s' % (track, track.author, author))
 
 		# composer
-		composer = self.findArtist(metadata['composer'], metadata['composersort'])
+		composer = self.find_artist(metadata['composer'], metadata['composersort'])
 		if composer != None:
 			if track.composer == None:
 				track.composer = composer
@@ -228,7 +224,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Composer conflict for track %s: %s != %s' % (track, track.composer, composer))
 
 		# conductor
-		conductor = self.findArtist(metadata['conductor'])
+		conductor = self.find_artist(metadata['conductor'])
 		if conductor != None:
 			if track.conductor == None:
 				track.conductor = conductor
@@ -238,7 +234,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Conductor conflict for track %s: %s != %s' % (track, track.conductor, conductor))
 
 		# lyricist
-		lyricist = self.findArtist(metadata['lyricist'])
+		lyricist = self.find_artist(metadata['lyricist'])
 		if lyricist != None:
 			if track.lyricist == None:
 				track.lyricist = lyricist
@@ -248,7 +244,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Lyricist conflict for track %s: %s != %s' % (track, track.lyricist, lyricist))
 
 		# performer
-		performer = self.findArtist(metadata['performer'])
+		performer = self.find_artist(metadata['performer'])
 		if performer != None:
 			if track.performer == None:
 				track.performer = performer
@@ -258,7 +254,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Performer conflict for track %s: %s != %s' % (track, track.performer, performer))
 
 		# album
-		album = self.findAlbum(metadata['album'], metadata['albumsort'], metadata['musicbrainz_albumid'], track.artist, metadata)
+		album = self.find_album(metadata['album'], metadata['albumsort'], metadata['musicbrainz_albumid'], track.artist, metadata)
 		if album != None:
 			if track.album == None:
 				track.album = album
@@ -269,7 +265,7 @@ class ImportThread(threading.Thread):
 
 		# disc
 		if track.album != None:
-			disc = self.findDisc(track.album, metadata['discnumber'], metadata['discsubtitle'], metadata['musicbrainz_discid'])
+			disc = self.find_disc(track.album, metadata['discnumber'], metadata['discsubtitle'], metadata['musicbrainz_discid'])
 			for d in track.album.discs:
 				if d.id == disc.id:
 					# found disc is already linked - don't add it again
@@ -455,14 +451,14 @@ class ImportThread(threading.Thread):
 
 		dirs = re.split(os.sep, dirName)
 		if len(dirs) > 0:
-			album = self.findAlbum(dirs[-1])
+			album = self.find_album(dirs[-1])
 			if album != None:
 				if track.album == None:
 					track.album = album
 					self.sa_session.add(album)
 
 		if len(dirs) > 1:
-			artist = self.findArtist(dirs[-2])
+			artist = self.find_artist(dirs[-2])
 			if artist != None:
 				if track.artist == None:
 					track.artist = artist
@@ -475,7 +471,7 @@ class ImportThread(threading.Thread):
 		self.sa_session.commit()
 
 
-	def findArtist(self, name=None, name_sort=None, musicbrainz_id=None):
+	def find_artist(self, name=None, name_sort=None, musicbrainz_id=None):
 		"""Searches the database for an existing artist that matches the specified criteria.
 		If no existing artist can be found, a new artist is created with the criteria.
 		When a new artist is created, it is not added to the database. This is the responsibility
@@ -531,7 +527,7 @@ class ImportThread(threading.Thread):
 
 
 	# TODO: Need support for album artist?
-	def findAlbum(self, title=None, title_sort=None, musicbrainz_id=None, artist=None, metadata=None):
+	def find_album(self, title=None, title_sort=None, musicbrainz_id=None, artist=None, metadata=None):
 		"""Searches the database for an existing album that matches the specified criteria.
 		If no existing album can be found, a new album is created with the criteria.
 		When a new album is created, it is not added to the database. This is the responsibility of
@@ -643,7 +639,7 @@ class ImportThread(threading.Thread):
 		return album
 
 
-	def findDisc(self, album=None, discnumber=None, discsubtitle=None, musicbrainz_id=None):
+	def find_disc(self, album=None, discnumber=None, discsubtitle=None, musicbrainz_id=None):
 		"""Tries to find an existing disc that matches the specified criteria.
 		If an existing disc cannot be found, creates a new disc with the specified criteria.
 		"""
