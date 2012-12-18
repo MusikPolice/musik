@@ -6,7 +6,7 @@ import os
 
 from musik import config
 from musik import log
-import musik.library.importer
+import musik.importer
 import musik.web
 
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 		signal.signal(sig, cleanup)
 
 	log.info(u'Starting worker threads')
-	importThread = musik.library.importer.ImportThread()
+	importThread = musik.importer.ImportThread()
 	importThread.start()
 	threads.append(importThread)
 
