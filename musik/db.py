@@ -166,33 +166,39 @@ class Track(Base):
 	# columns
 	id = Column(Integer, primary_key=True)						# unique id
 	uri = Column(String)										# physical location of the track file
-	artist_id = Column(Integer, ForeignKey('artists.id'))		# the artist that recorded the track
+
 	album_id = Column(Integer, ForeignKey('albums.id'))			# the album that contains the track
 	album_artist_id = Column(Integer, ForeignKey('artists.id'))	# the artist that released the album
-	arranger_id = Column(Integer, ForeignKey('artists.id'))		# the artist that arranged the track
-	author_id = Column(Integer, ForeignKey('artists.id'))		# the author that wrote the track
+	albumstatus = Column(String)								# musicbrainz album status
+	albumtype = Column(String)									# musicbrainz album type
+	artist_id = Column(Integer, ForeignKey('artists.id'))		# the artist that recorded the track
+	asin = Column(String)										# Amazon Standard Identification Number
+	bitdepth = Column(Integer)									# Number of bits per sample
+	bitrate = Column(Integer)									# Number of bits per second
 	bpm = Column(Integer)										# beats per minute
+	catalognum = Column(String)									# Catalog number (a unique id on physical media)
+	channels = Column(Integer)									# The number of channels in the audio
+	comments = Column(String)									# Comments
+	compilation = Column(Boolean)								# true if album is a compilation
 	composer_id = Column(Integer, ForeignKey('artists.id'))		# the artist that composed the track
-	conductor_id = Column(Integer, ForeignKey('artists.id'))	# the artist that conducted the track
-	copyright = Column(String)									# copyright information
-	date = Column(String)										# date that the track was released
+	country = Column(String)									# Release country code
+	date = Column(DateTime)										# date that the track was released
 	disc_id = Column(Integer, ForeignKey('discs.id'))			# disc of the album that the track appeared on
-	encodedby = Column(String)									# encoder that created the digital file
+	encoder = Column(String)									# encoder that created the digital file
+	format = Column(String)										# the file format/codec
 	genre = Column(String)										# genre of track contents
-	isrc = Column(String) 										# ISO 3901 12-character International Standard Recording Code
+	label = Column(String)										# publisher name
+	language = Column(String)									# language code
 	length = Column(BigInteger)									# length of the track in milliseconds
-	lyricist_id = Column(Integer, ForeignKey('artists.id'))		# the artist that wrote the lyrics of the track
-	mood = Column(String)										# description of the mood of the track
-	musicbrainz_trackid = Column(String)						# unique 36-digit musicbrainz hex string
-	musicbrainz_trmid = Column(String)							# semi-unique trm fingerprint
-	musicip_fingerprint = Column(String)						# unique musicip (gracenote) fingerprint
-	musicip_puid = Column(String)								# unique musicip (gracenote) id
-	performer_id = Column(Integer, ForeignKey('artists.id'))	# artist that performed the track
+	lyrics = Column(String)										# the lyrics to the song
+	mb_releasegroupid = Column(String)							# musicbrainz release group id
+	mb_trackid = Column(String)									# unique 36-digit musicbrainz hex string
+	media_type = Column(String)									# media type (cd, cassette, lp, etc)
+	samplerate = Column(Integer)								# sample rate
 	title = Column(String)										# title of the track
-	title_sort = Column(String)									# sortable title of the track
 	tracknumber = Column(Integer)								# order of the track on the disc
-	subtitle = Column(String)									# sub title of the track
-	website = Column(String)									# a website for the track
+	year = Column(Integer)										# release year
+
 	playcount = Column(Integer)									# number of times the track was played
 	rating = Column(Integer)									# rating of the track (0-255)
 

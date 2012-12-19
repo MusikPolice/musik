@@ -64,7 +64,6 @@ class ImportThread(threading.Thread):
 					self.log.info(u'%s has finished processing task %s' % (self.getName(), unicode(task)))
 
 				time.sleep(1)
-
 		finally:
 			# always clean up - your mom doesn't work here
 			if self.sa_session != None:
@@ -72,11 +71,12 @@ class ImportThread(threading.Thread):
 				self.sa_session = None
 
 
-	# adds a directory to the local library
-	# in practice, this is a breadth-first searche over the specified directory and its
-	# subdirectories that places appropriate files back into the import queue
-	# TODO: directory permissions. Make sure that we can read before we try to
 	def import_directory(self, uri):
+		"""Adds the specified directory to the library.
+		In practice, this implements a recursive breadth-first search over the
+		subtree rooted at uri. All files with a mimetype that starts with the
+		string 'audio' will be put back into the import queue for additional
+		processing. Returns True."""
 		search_queue = [uri]
 		while len(search_queue) > 0:
 			# this is the current working directory
@@ -84,6 +84,7 @@ class ImportThread(threading.Thread):
 			if os.path.isdir(baseuri) == False:
 				continue
 
+			# TODO: directory permissions. Make sure that we can read before we try to
 			# iterate over the subdirectories and files in the current working directory
 			entries = os.listdir(baseuri)
 			for subdir in entries:
@@ -100,74 +101,43 @@ class ImportThread(threading.Thread):
 						self.sa_session.commit()
 					else:
 						self.log.info(u'Ignoring file %s' % newuri)
+		return True
 
 
-	# returns True if the mime type of the specified uri is supported
-	# this should only support audio files
-	# TODO: query gstreamer (or whatever other backend we're using) to determine support up front
 	def is_mime_type_supported(self, uri):
-		mtype = mimetypes.guess_type(uri)[0]
-		if mtype in (u'audio/mpeg', u'audio/flac', u'audio/ogg', u'audio/x-wav'):
-			return True
-		else:
-			return False
+		"""Takes a guess at the mimetype of the file at the specified uri.
+		Returns True if the mimetype could be inferred and file contains audio
+		data, false otherwise. Note that this function does not care whether or
+		not the file actually exists."""
+		(mimetype, encoding) = mimetypes.guess_type(uri)
+		return mimetype is not None and mimetype.startswith('audio')
 
 
 	def import_file(self, uri):
-		self.log.info(u'import_file called with uri %s' % uri)
+		"""Adds the specified file to the library.
+		Returns True if the file was successfully added to the database, or
+		False if metadata could not be read or the file could not be added."""
 
-		mtype = mimetypes.guess_type(uri)[0]
-		if mtype != u'audio/mpeg':
-			self.log.info(u'Unsupported mime type %s. Ignoring file.' % mtype)
-
-		# Try to read the metadata appropriately.
-		self.import_track(uri)
-
-
-	def import_track(self, uri):
-		"""Creates a track object out of the specified URI.
-		Returns a fully populated musik.db.Track object that has already been
-		committed to the database.
-		"""
-		self.log.info(u'import_track called with uri %s' % uri)
-
-		# check that the uri doesn't already exist in our library
-		try:
-			track = self.sa_session.query(Track).filter(Track.uri == uri).first()
-		except OperationalError as oe:
-			error_text = str(oe)
-			if error_text.startswith(u"(OperationalError) no such column:"):
-				# Database schema has likely changed
-				self.log.error(u"One or more columns does not exist in the database. You may be able to repair it yourself.")
-				self.log.error(u"If you are developing and don't care about your data, just delete the musik.db file.")
-				# Fall through and print exception details so the user can adjust as necessary
-
-			self.log.error(u"An error occurred accessing the database: %s" % error_text)
-			return
-
+		# ensure that the uri isn't already in our library - we don't want duplicates
+		track = self.sa_session.query(Track).filter(Track.uri == uri).first()
 		if track == None:
 			track = Track(uri)
 			self.sa_session.add(track)
 		else:
-			self.log.info(u'Track with uri %s is already in the library. Updating metadata...')
+			self.log.info(u'The file %s is already in the library. Updating metadata...' % uri)
 
 		try:
-			# get id3 data from the file
-			easyid3 = EasyID3(uri)
-		except ID3NoHeaderError as nhe:
-			self.log.error(u'Cannot read ID3 data from %s. It cannot be added to the library at this time.' % uri)
-			self.log.error(u'Exception message: %s' % unicode(nhe))
+			metadata = MediaFile(uri)
+		except UnreadableFileError as e:
+			self.log.error(u'Could not extract metadata from %s' % uri)
 			return False
 
-		metadata = EasygoingDictionary()
-		for key in easyid3.keys():
-			if type(easyid3[key]) == list:
-				metadata[key] = easyid3[key][0]
-			else:
-				metadata[key] = easyid3[key]
+		# TODO: db.Track has been updated to reflect fields available in metadata object.
+		#		next step is to update all of the code below this point to also use those
+		#		fields and to match the track schema
 
 		# artist
-		artist = self.find_artist(metadata['artist'], metadata['artistsort'], metadata['musicbrainz_artistid'])
+		artist = self.find_artist(metadata.artist, metadata.artist_sort, metadata.mb_artistid)
 		if artist != None:
 			if track.artist == None:
 				track.artist = artist
@@ -177,7 +147,7 @@ class ImportThread(threading.Thread):
 				self.log.warning(u'Artist conflict for track %s: %s != %s' % (track, track.artist, artist))
 
 		# album artist - use the artist if metadata isn't set
-		album_artist = self.find_artist(metadata['albumartist'], metadata['albumartistsort'])
+		album_artist = self.find_artist(metadata.albumartist, metadata.albumartist_sort)
 		if album_artist != None:
 			if track.album_artist == None:
 				track.album_artist = album_artist
@@ -471,14 +441,14 @@ class ImportThread(threading.Thread):
 		self.sa_session.commit()
 
 
-	def find_artist(self, name=None, name_sort=None, musicbrainz_id=None):
+	def find_artist(self, name='', name_sort='', musicbrainz_id=''):
 		"""Searches the database for an existing artist that matches the specified criteria.
 		If no existing artist can be found, a new artist is created with the criteria.
 		When a new artist is created, it is not added to the database. This is the responsibility
 		of the calling function.
 		"""
 		artist = None
-		if musicbrainz_id != None:
+		if musicbrainz_id != '':
 			# we trust musicbrainz_artistid the most because it infers that
 			# some other tagger has already verified the metadata.
 			artist = self.sa_session.query(Artist).filter(Artist.musicbrainz_artistid == musicbrainz_id).first()
@@ -486,20 +456,20 @@ class ImportThread(threading.Thread):
 				# found an existing artist in our db - compare its metadata
 				# to the new info. Always prefer existing metadata over new.
 				self.log.info(u'Artist name musicbrainz_artistid search found existing artist %s in database' % artist)
-				if name != None:
+				if name != '':
 					if artist.name == None:
 						artist.name = name
 					elif artist.name != name:
 						# TODO: conflict -> schedule musicbrainz task!
 						self.log.warning(u'Artist name conflict for musicbrainz_artistid %s: %s != %s' % (artist.musicbrainz_artistid, artist.name, name))
-				if name_sort != None:
+				if name_sort != '':
 					if artist.name_sort == None:
 						artist.name_sort = name_sort
 					elif artist.name_sort != name_sort:
 						# TODO: conflict -> schedule musicbrainz task!
 						self.log.warning(u'Artist sort name conflict for musicbrainz_artistid %s: %s != %s' % (artist.musicbrainz_artistid, artist.name_sort, name_sort))
 
-		if artist == None and name != None:
+		if artist == None and name != '':
 			# if we don't have musicbrainz_artistid or there is no matching
 			# artist in our db, try to find an existing artist by name
 			artist = self.sa_session.query(Artist).filter(Artist.name == name).first()
@@ -507,7 +477,7 @@ class ImportThread(threading.Thread):
 				self.log.info(u'Artist name search found existing artist %s in database' % artist)
 				# found an existing artist in our db - compare its metadata
 				# to the new info. Always prefer existing metadata over new.
-				if name_sort != None:
+				if name_sort != '':
 					if artist.name_sort == None:
 						artist.name_sort = name_sort
 					elif artist.name_sort != name_sort:
@@ -515,9 +485,9 @@ class ImportThread(threading.Thread):
 			else:
 				# an existing artist could not be found in our db. Make a new one
 				artist = Artist(name)
-				if name_sort != None:
+				if name_sort != '':
 					artist.name_sort = name_sort
-				if musicbrainz_id != None:
+				if musicbrainz_id != '':
 					artist.musicbrainz_artistid = musicbrainz_id
 				# add the artist object to the DB
 				self.log.info(u'Artist not found in database. Created new artist %s' % artist)
@@ -527,14 +497,14 @@ class ImportThread(threading.Thread):
 
 
 	# TODO: Need support for album artist?
-	def find_album(self, title=None, title_sort=None, musicbrainz_id=None, artist=None, metadata=None):
+	def find_album(self, title='', title_sort='', musicbrainz_id='', artist=None, metadata=None):
 		"""Searches the database for an existing album that matches the specified criteria.
 		If no existing album can be found, a new album is created with the criteria.
 		When a new album is created, it is not added to the database. This is the responsibility of
 		the calling function.
 		"""
 		album = None
-		if musicbrainz_id != None:
+		if musicbrainz_id != '':
 			# we trust musicbrainz_albumid the most because it infers that
 			# some other tagger has already verified the metadata.
 			album = self.sa_session.query(Album).filter(Album.musicbrainz_albumid == musicbrainz_id).first()
@@ -542,13 +512,13 @@ class ImportThread(threading.Thread):
 				# found an existing album in our db - compare its metadata
 				# to the new info. Always prefer existing metadata over new.
 				self.log.info(u'Album musicbrainz_albumid search found existing album %s in database' % album)
-				if title != None:
+				if title != '':
 					if album.title == None:
 						album.title = title
 					elif album.title != title:
 						# TODO: conflict -> schedule musicbrainz task!
 						self.log.warning(u'Album title conflict for musicbrainz_albumid %s: %s != %s' % (album.musicbrainz_albumid, album.title, title))
-				if title_sort != None:
+				if title_sort != '':
 					if album.title_sort == None:
 						album.title_sort = title_sort
 					elif album.title_sort != title_sort:
@@ -561,7 +531,7 @@ class ImportThread(threading.Thread):
 						# TODO: conflict -> schedule musicbrainz task!
 						self.log.warning(u'Album artist conflict for musicbrainz_albumid %s: %s != %s' % (album.musicbrainz_albumid, album.artist, artist))
 
-		if album == None and title != None and artist != None:
+		if album == None and title != '' and artist != None:
 			# if we don't have musicbrainz_albumid or there is no matching
 			# album in our db, try to find an existing album by title and artist
 			album = self.sa_session.query(Album).filter(Album.title == title, Album.artist_id == artist.id).first()
@@ -569,7 +539,7 @@ class ImportThread(threading.Thread):
 				# found an existing album in our db - compare its metadata
 				# to the new info. Always prefer existing metadata over new.
 				self.log.info(u'Album title/artist search found existing album %s in database' % album)
-				if title_sort != None:
+				if title_sort != '':
 					if album.title_sort == None:
 						album.title_sort = title_sort
 					elif album.title_sort != title_sort:
@@ -577,46 +547,35 @@ class ImportThread(threading.Thread):
 			else:
 				# an existing album could not be found in our db. Make a new one
 				album = Album(title)
-				if title_sort != None:
+				if title_sort != '':
 					album.title_sort = title_sort
-				if musicbrainz_id != None:
+				if musicbrainz_id != '':
 					album.musicbrainz_albumid = musicbrainz_id
 				if artist != None:
 					album.artist = artist
 				self.log.info(u'Album not found in database. Created new album %s' % album)
 
 		# we either found or created the album. now verify its metadata
+		#TODO: fix all of these
 		if album != None and metadata != None:
-			if metadata['asin'] != None:
+			if metadata.asin != '':
 				if album.asin == None:
-					album.asin = metadata['asin']
-				elif album.asin != metadata['asin']:
+					album.asin = metadata.asin
+				elif album.asin != metadata.asin:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album ASIN conflict for album %s: %s != %s' % (album, album.asin, metadata['asin']))
-			if metadata['barcode'] != None:
-				if album.barcode == None:
-					album.barcode = metadata['barcode']
-				elif album.barcode != metadata['barcode']:
-					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album barcode conflict for album %s: %s != %s' % (album, album.barcode, metadata['barcode']))
-			if metadata['compilation'] != None:
+					self.log.warning(u'Album ASIN conflict for album %s: %s != %s' % (album, album.asin, metadata.asin))
+			if metadata.compilation != None:
 				if album.compilation == None:
-					album.compilation = metadata['compilation']
-				elif album.compilation != metadata['compilation']:
+					album.compilation = metadata.compilation
+				elif album.compilation != metadata.compilation:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album compilation conflict for album %s: %s != %s' % (album, album.compilation, metadata['compilation']))
-			if metadata['media'] != None:
+					self.log.warning(u'Album compilation conflict for album %s: %s != %s' % (album, album.compilation, metadata.compilation))
+			if metadata.media != '':
 				if album.media_type == None:
-					album.media_type = metadata['media']
-				if album.media_type != metadata['media']:
+					album.media_type = metadata.media
+				if album.media_type != metadata.media:
 					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album media type conflict for album %s: %s != %s' % (album, album.media_type, metadata['media']))
-			if metadata['musicbrainz_albumstatus'] != None:
-				if album.musicbrainz_albumstatus == None:
-					album.musicbrainz_albumstatus = metadata['musicbrainz_albumstatus']
-				elif album.musicbrainz_albumstatus != metadata['musicbrainz_albumstatus']:
-					# TODO: conflict -> schedule musicbrainz task!
-					self.log.warning(u'Album musicbrainz_albumstatus conflict for album %s: %s != %s' % (album, album.musicbrainz_albumstatus, metadata['musicbrainz_albumstatus']))
+					self.log.warning(u'Album media type conflict for album %s: %s != %s' % (album, album.media_type, metadata.media))
 			if metadata['musicbrainz_albumtype'] != None:
 				if album.musicbrainz_albumtype == None:
 					album.musicbrainz_albumtype = metadata['musicbrainz_albumtype']

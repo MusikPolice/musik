@@ -41,13 +41,15 @@ import imghdr
 import os
 import logging
 import traceback
-from beets.util.enumeration import enum
+
+from musik import log
+from musik.importer.enumeration import enum
 
 __all__ = ['UnreadableFileError', 'FileTypeError', 'MediaFile']
 
 
 # Logger.
-log = logging.getLogger('beets')
+log = log.Log(__name__)
 
 
 # Exceptions.
