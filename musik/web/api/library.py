@@ -22,6 +22,9 @@ def _query(obj, sortby, params):
 	#split the query into key:value pairs
 	query = []
 	for index in range(0, len(params) - 1, 2):
+		if params[index] not in fields:
+			#invalid key specified
+			raise cherrypy.HTTPError(400, "Invalid query string specified. %s does not contain a field named %s." % (str(obj), params[index]))
 		query.append(dict([(params[index],params[index + 1])]))
 
 	q = cherrypy.request.db.query(obj)
