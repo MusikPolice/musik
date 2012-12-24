@@ -2,7 +2,7 @@ $(document).ready(function() {
 	$('.validate-error').hide();
 });
 
-$('#importmedia-form').submit(function(event) {
+$('#importmedia').submit(function(event) {
 
 	//stop the form from submitting normally
 	event.preventDefault();
