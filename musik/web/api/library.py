@@ -8,6 +8,42 @@ from musik.util import DateTimeEncoder
 import json
 import random
 
+def _query(obj, sortby, params):
+	"""Performs a generic database query and returns the results as a dictionary.
+	obj: The musik.db object to query (Track, Artist, Album, etc)
+	sortby: The field of obj to sort the results by (Track.title, Artist.name, etc)
+	params: A list of key/value pairs to query with, where key is the database obj
+			field and value is the value to search for. Strings will be matched with
+			a LIKE clause, other values are matched with strict equality.
+	"""
+	#get the set of fields that makes up the type
+	fields = {c.name: c for c in obj.__table__.columns}
+
+	#split the query into key:value pairs
+	query = []
+	for index in range(0, len(params) - 1, 2):
+		query.append(dict([(params[index],params[index + 1])]))
+
+	q = cherrypy.request.db.query(obj)
+	for d in query:
+		key = d.keys()[0]
+		value = d[key]
+
+		if str(fields[key].type) == 'VARCHAR':
+			# allow for partial string matching
+			q = q.filter(fields[key].like('%' + value + '%'))
+		else:
+			# all other data types must be exact matches
+			q = q.filter(fields[key] == value)
+
+	# return the results as JSON
+	results = []
+	for a in q.order_by(sortby).all():
+		results.append(a.as_dict())
+
+	return results
+
+
 class Albums():
 	log = None
 	exposed = True
@@ -24,33 +60,9 @@ class Albums():
 
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 
-		#get the set of fields that makes up a Album object
-		fields = {c.name: c for c in Album.__table__.columns}
-
-		#split the query into key:value pairs
-		query = []
-		for index in range(0, len(params) - 1, 2):
-			query.append(dict([(params[index],params[index + 1])]))
-
-		self.log.info(u'queryAlbums called with params %s' % unicode(query))
-
-		q = cherrypy.request.db.query(Album)
-
-		for d in query:
-			key = d.keys()[0]
-			value = d[key]
-
-			if str(fields[key].type) == 'VARCHAR':
-				# allow for partial string matching
-				q = q.filter(fields[key].like('%' + value + '%'))
-			else:
-				# all other data types must be exact matches
-				q = q.filter(fields[key] == value)
-
-		album_list = []
-	 	for a in q.order_by(Album.title_sort).all():
-	 		album_list.append(a.as_dict())
-		return json.dumps(album_list)
+	 	# do the query
+	 	results = _query(Album, Album.title_sort, params)
+		return json.dumps(results)
 
 
 class Artists():
@@ -69,32 +81,9 @@ class Artists():
 
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 
-		#get the set of fields that makes up an Artist object
-		fields = {c.name: c for c in Artist.__table__.columns}
-
-		#split the query into key:value pairs
-		query = []
-		for index in range(0, len(params) - 1, 2):
-			query.append(dict([(params[index],params[index + 1])]))
-
-		self.log.info(u'queryArtists called with params %s' % unicode(query))
-
-		q = cherrypy.request.db.query(Artist)
-		for d in query:
-			key = d.keys()[0]
-			value = d[key]
-
-			if str(fields[key].type) == 'VARCHAR':
-				# allow for partial string matching
-				q = q.filter(fields[key].like('%' + value + '%'))
-			else:
-				# all other data types must be exact matches
-				q = q.filter(fields[key] == value)
-
-		artist_list = []
-	 	for a in q.order_by(Artist.name_sort).all():
-	 		artist_list.append(a.as_dict())
-		return json.dumps(artist_list)
+		# do the query
+	 	results = _query(Artist, Artist.name_sort, params)
+		return json.dumps(results)
 
 
 class Discs():
@@ -114,32 +103,9 @@ class Discs():
 
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 
-		#get the set of fields that makes up a Disc object
-		fields = {c.name: c for c in Disc.__table__.columns}
-
-		#split the query into key:value pairs
-		query = []
-		for index in range(0, len(params) - 1, 2):
-			query.append(dict([(params[index],params[index + 1])]))
-
-		self.log.info(u'queryDiscs called with params %s' % unicode(query))
-
-		q = cherrypy.request.db.query(Disc)
-		for d in query:
-			key = d.keys()[0]
-			value = d[key]
-
-			if str(fields[key].type) == 'VARCHAR':
-				# allow for partial string matching
-				q = q.filter(fields[key].like('%' + value + '%'))
-			else:
-				# all other data types must be exact matches
-				q = q.filter(fields[key] == value)
-
-		disc_list = []
-	 	for d in q.order_by(Disc.id).all():
-	 		disc_list.append(d.as_dict())
-		return json.dumps(disc_list)
+	 	# do the query
+		results = _query(Disc, Disc.id, params)
+		return json.dumps(results)
 
 
 class Tracks():
@@ -157,37 +123,13 @@ class Tracks():
 		"""
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 
-		#catch random track requests
+		# catch random track requests
 		if len(params) == 1 and params[0] == 'random':
 			return self.random_track()
 
-		#get the set of fields that makes up a Track object
-		fields = {c.name: c for c in Track.__table__.columns}
-
-		#split the query into key:value pairs
-		query = []
-		for index in range(0, len(params) - 1, 2):
-			query.append(dict([(params[index],params[index + 1])]))
-
-		self.log.info(u'A GET request was received by Tracks with params %s' % unicode(query))
-
-		q = cherrypy.request.db.query(Track)
-		for d in query:
-			key = d.keys()[0]
-			value = d[key]
-
-			if str(fields[key].type) == 'VARCHAR':
-				# allow for partial string matching
-				q = q.filter(fields[key].like('%' + value + '%'))
-			else:
-				# all other data types must be exact matches
-				q = q.filter(fields[key] == value)
-
-		# return the results as JSON
-		track_list = []
-		for a in q.order_by(Track.title).all():
-			track_list.append(a.as_dict())
-		return json.dumps(track_list, cls=DateTimeEncoder)
+		# do the query
+		results = _query(Track, Track.title, params)
+		return json.dumps(results, cls=DateTimeEncoder)
 
 
 	def random_track(self):
