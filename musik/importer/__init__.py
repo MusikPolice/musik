@@ -29,6 +29,7 @@ class ImportThread(threading.Thread):
 		db = DatabaseWrapper()
 		self.sa_session = db.get_session()
 
+
 	def run(self):
 		"""Checks for new import tasks once per second and passes them off to
 		the appropriate handler functions for completion.
@@ -131,68 +132,6 @@ class ImportThread(threading.Thread):
 		except UnreadableFileError as e:
 			self.log.error(u'Could not extract metadata from %s' % uri)
 			return False
-
-		# TODO: db.Track has been updated to reflect fields available in metadata object.
-		#		next step is to update all of the code below this point to also use those
-		#		fields and to match the track schema
-		"""
-		Track:
-			id
-			uri
-			album #Album/Movie/Show title
-			albumartist #Band/orchestra/accompaniment
-			artist
-			bitdepth (int) #The number of bits per sample in the audio encoding
-			bitrate (int) #number of bits per second used in the audio coding
-			bpm (int) #BPM (beats per minute)
-			channels (int) #The number of channels in the audio
-			comments #Comments
-			composer #Composer (artist)
-			date (datetime) #Recording date/time
-			encoder #encoded by
-			format #A string describing the file format/codec
-			genre #Content type
-			language #language
-			length (float) #duration in seconds
-			lyrics #Unsynchronized lyric/text transcription
-			mb_trackid #musicbrainz track id
-			title
-			track (int) [track_number] #Track number/Position in set
-			samplerate (int)
-
-		Artist:
-			id
-			name
-			artist_sort #Performer sort order
-			mb_artistid #musicbrainz artist id
-
-		Album:
-			id
-			title
-			albumstatus #musicbrainz album status
-			albumtype #musicbrainz album type
-			asin #Amazon Standard Identification Number
-			catalognum #catalog number (a unique id on physical media)
-			comp [compilation] (bool) #true if album is a compilation
-			country #release country code
-			label #publisher
-			mb_releasegroupid #musicbrainz release group id
-			media [media_type] #media type (CD, Cassette, etc)
-			year (int) #Recording date/time
-
-		Disc:
-			id
-			disctitle #Set subtitle
-			disctotal (int) #total discs
-			tracktotal (int) #total tracks
-
-		Special Tags:
-			art (ImageField) # Album art.
-
-		Optional Tags
-			acoustid_fingerprint #acoustid fingerprint
-			acoustid_id #acoustid
-		"""
 
 		# artist
 		artist = self.find_artist(metadata.artist, metadata.artist_sort, metadata.mb_artistid)
