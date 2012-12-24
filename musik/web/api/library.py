@@ -3,6 +3,7 @@ from musik import log
 import cherrypy
 from musik.db import Album, Artist, Disc, Track
 import musik.web.api.library
+from musik.util import DateTimeEncoder
 
 import json
 import random
@@ -193,7 +194,7 @@ class Tracks():
 		for index in range(0, len(params) - 1, 2):
 			query.append(dict([(params[index],params[index + 1])]))
 
-		self.log.info(u'queryTracks called with params %s' % unicode(query))
+		self.log.info(u'A GET request was received by Tracks with params %s' % unicode(query))
 
 		q = cherrypy.request.db.query(Track)
 
@@ -209,8 +210,8 @@ class Tracks():
 				q = q.filter(Track.artist_id == value)
 			elif key == 'album_id':
 				q = q.filter(Track.album_id == value)
-			elif key == 'album_artist_id':
-				q = q.filter(Track.album_artist_id == value)
+			elif key == 'albumartist_id':
+				q = q.filter(Track.albumartist_id == value)
 			elif key == 'arranger_id':
 				q = q.filter(Track.arranger_id == value)
 			elif key == 'author_id':
@@ -265,9 +266,9 @@ class Tracks():
 				q = q.filter(Track.rating == value)
 
 		track_list = []
-		for a in q.order_by(Track.title_sort).all():
+		for a in q.order_by(Track.title).all():
 			track_list.append(a.as_dict())
-		return json.dumps(track_list)
+		return json.dumps(track_list, cls=DateTimeEncoder)
 
 
 	def random_track(self):
@@ -279,4 +280,4 @@ class Tracks():
 		q = cherrypy.request.db.query(Track).all()
 		track = q[random.randint(0, len(q) - 1)]
 
-		return json.dumps(track.as_dict())
+		return json.dumps(track.as_dict(), cls=DateTimeEncoder)

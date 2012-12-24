@@ -87,18 +87,20 @@ class Album(Base):
 	"""
 	__tablename__ = 'albums'
 	id = Column(Integer, primary_key=True)					# unique id
-	title = Column(String)									# the title of the album
-	title_sort = Column(String)								# sortable title of the album
+	albumstatus = Column(String)							# musicbrainz album status
+	albumtype = Column(String)								# musicbrainz album type
 	artist_id = Column(Integer, ForeignKey('artists.id'))	# the artist that recorded this album
 	asin = Column(String)									# amazon standard identification number - only if physical
-	barcode = Column(String)								# physical album barcode
+	catalognum = Column(String)								# a quasi-unique identifier assigned to the album by the label
 	compilation = Column(Boolean)							# whether or not this album is a compilation
+	country = Column(String)								# the country that this album was released in
+	label = Column(String)									# the record label that released this album
+	mb_albumid = Column(String)								# unique 36-digit musicbrainz hex string
+	mb_releasegroupid = Column(String)						# unique identifer of label that released the album
 	media_type = Column(String)								# the type of media (CD, etc)
-	musicbrainz_albumid = Column(String)					# unique 36-digit musicbrainz hex string
-	musicbrainz_albumstatus = Column(String)				# unique 36-digit musicbrainz hex string
-	musicbrainz_albumtype = Column(String)					# unique 36-digit musicbrainz hex string
-	organization = Column(String)							# organization that released the album (usually a record company)
-	releasecountry = Column(String)							# the country that this album was released in
+	title = Column(String)									# the title of the album
+	title_sort = Column(String)								# sortable title of the album
+	year = Column(Integer)									# the year in which the album was released
 
 	artist = relationship('Artist', backref=backref('albums', order_by=id))
 
@@ -136,7 +138,7 @@ class Disc(Base):
 	album_id = Column(Integer, ForeignKey('albums.id'))	# the album that this disc belongs to
 	discnumber = Column(String)							# the play order of this disc in the collection
 	disc_subtitle = Column(String)						# the subtitle (if applicable) of this disc
-	musicbrainz_discid = Column(String)					# unique 36-digit musicbrainz hex string
+	num_tracks = Column(Integer)						# total tracks on the disc
 
 	# relationships
 	album = relationship('Album', backref=backref('discs', order_by=discnumber, lazy='dynamic'))
@@ -163,55 +165,40 @@ class Track(Base):
 	"""
 	__tablename__ = 'tracks'
 
-	# columns
+	# fields from metadata
 	id = Column(Integer, primary_key=True)						# unique id
 	uri = Column(String)										# physical location of the track file
-
 	album_id = Column(Integer, ForeignKey('albums.id'))			# the album that contains the track
-	album_artist_id = Column(Integer, ForeignKey('artists.id'))	# the artist that released the album
-	albumstatus = Column(String)								# musicbrainz album status
-	albumtype = Column(String)									# musicbrainz album type
+	albumartist_id = Column(Integer, ForeignKey('artists.id'))  # the artist that recorded the album
 	artist_id = Column(Integer, ForeignKey('artists.id'))		# the artist that recorded the track
-	asin = Column(String)										# Amazon Standard Identification Number
 	bitdepth = Column(Integer)									# Number of bits per sample
 	bitrate = Column(Integer)									# Number of bits per second
 	bpm = Column(Integer)										# beats per minute
-	catalognum = Column(String)									# Catalog number (a unique id on physical media)
 	channels = Column(Integer)									# The number of channels in the audio
 	comments = Column(String)									# Comments
-	compilation = Column(Boolean)								# true if album is a compilation
 	composer_id = Column(Integer, ForeignKey('artists.id'))		# the artist that composed the track
-	country = Column(String)									# Release country code
 	date = Column(DateTime)										# date that the track was released
 	disc_id = Column(Integer, ForeignKey('discs.id'))			# disc of the album that the track appeared on
 	encoder = Column(String)									# encoder that created the digital file
 	format = Column(String)										# the file format/codec
 	genre = Column(String)										# genre of track contents
-	label = Column(String)										# publisher name
 	language = Column(String)									# language code
 	length = Column(BigInteger)									# length of the track in milliseconds
 	lyrics = Column(String)										# the lyrics to the song
-	mb_releasegroupid = Column(String)							# musicbrainz release group id
 	mb_trackid = Column(String)									# unique 36-digit musicbrainz hex string
-	media_type = Column(String)									# media type (cd, cassette, lp, etc)
 	samplerate = Column(Integer)								# sample rate
 	title = Column(String)										# title of the track
 	tracknumber = Column(Integer)								# order of the track on the disc
-	year = Column(Integer)										# release year
 
+	# custom fields
 	playcount = Column(Integer)									# number of times the track was played
 	rating = Column(Integer)									# rating of the track (0-255)
 
 	# relationships
-	artist = relationship('Artist', primaryjoin='Artist.id == Track.artist_id')
-	album_artist = relationship('Artist', primaryjoin='Artist.id == Track.album_artist_id')
-	arranger = relationship('Artist', primaryjoin='Artist.id == Track.arranger_id')
-	composer = relationship('Artist', primaryjoin='Artist.id == Track.composer_id')
-	conductor = relationship('Artist', primaryjoin='Artist.id == Track.conductor_id')
-	lyricist = relationship('Artist', primaryjoin='Artist.id == Track.lyricist_id')
-	performer = relationship('Artist', primaryjoin='Artist.id == Track.performer_id')
-	author = relationship('Artist', primaryjoin='Artist.id == Track.author_id')
 	album = relationship('Album', backref=backref('tracks', order_by=tracknumber))
+	album_artist = relationship('Artist', primaryjoin='Artist.id == Track.albumartist_id')
+	artist = relationship('Artist', primaryjoin='Artist.id == Track.artist_id')
+	composer = relationship('Artist', primaryjoin='Artist.id == Track.composer_id')
 	disc = relationship('Disc', backref=backref('tracks', order_by=tracknumber))
 
 	def __init__(self, uri):
