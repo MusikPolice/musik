@@ -30,10 +30,10 @@ class Musik:
 		r = requests.get(url)
 
 		if r.status_code != 200:
-			log.error(u'_api_request to url %s returned status code %d' % (url, int(r.status_code)))
+			self.log.error(u'_api_request to url %s returned status code %d' % (url, int(r.status_code)))
 			return False
 		elif r.headers['content-type'] != 'application/json':
-			log.error(u'_api_request to url %s returned an unsupported content-type %s' % (url, r.headers['content-type']))
+			self.log.error(u'_api_request to url %s returned an unsupported content-type %s' % (url, r.headers['content-type']))
 			return False
 
 		return json.loads(r.content)
