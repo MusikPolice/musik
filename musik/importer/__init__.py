@@ -25,9 +25,12 @@ class ImportThread(threading.Thread):
 		the same time.
 		"""
 		super(ImportThread, self).__init__(name=__name__)
-		self.log = log.Log(__name__)
 		db = DatabaseWrapper()
 		self.sa_session = db.get_session()
+
+		# create a log object that uses the same session that we do so that we can write error messages
+		# during transactions
+		self.log = log.Log(__name__, self.sa_session)
 
 
 	def run(self):

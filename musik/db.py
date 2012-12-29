@@ -5,14 +5,41 @@ from musik import config
 
 from sqlalchemy import Column, create_engine, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.types import String, Integer, DateTime, Boolean, BigInteger
+from sqlalchemy.types import String, Integer, DateTime, Boolean, BigInteger, Enum
 from sqlalchemy.orm import backref, relationship, sessionmaker
 
 
 # Helper to map and register a Python class a db table
 Base = declarative_base()
 
-# Represents an import task
+
+class LogEntry(Base):
+	"""Error and warning messages are written to the database and to log files."""
+	__tablename__ = 'log_entries'
+
+	id = Column(Integer, primary_key=True)
+	created = Column(DateTime, nullable=False)
+	severity = Column(Enum('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', name='severity'), nullable=False)
+	classpath = Column(String)
+	message = Column(String)
+	stack_trace = Column(String, nullable=True)
+
+	def __init__(self, severity, classpath, message, stack_trace=None):
+		Base.__init__(self)
+		self.created = datetime.utcnow()
+		self.severity = severity
+		self.classpath = classpath
+		self.message = message
+		if stack_trace is not None:
+			self.stack_trace = stack_trace
+
+	def __unicode__(self):
+		return u'<LogEntry(created=%s, severity=%s, classpath=%s, message=%s>' % (str(created), str(severity), classpath, message)
+
+	def __str__(self):
+		return unicode(self).encode('utf-8')
+
+
 class ImportTask(Base):
 	"""An import task is any operation that results in the import of a media
 	file into the library from some uri.
@@ -22,6 +49,7 @@ class ImportTask(Base):
 	"""
 	__tablename__ = 'import_tasks'
 	id = Column(Integer, primary_key=True)
+
 	uri = Column(String)
 	created = Column(DateTime)
 	started = Column(DateTime)
