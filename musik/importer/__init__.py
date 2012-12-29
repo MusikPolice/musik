@@ -51,7 +51,7 @@ class ImportThread(threading.Thread):
 					# start processing it
 					task.started = datetime.utcnow()
 					self.sa_session.commit()
-					self.log.info(u'%s is processing task %s' % (self.getName(), unicode(task)))
+					self.log.info(u'Processing task %s' % task.uri)
 
 					# process the task
 					if os.path.isdir(task.uri):
@@ -65,7 +65,7 @@ class ImportThread(threading.Thread):
 
 					task.completed = datetime.utcnow()
 					self.sa_session.commit()
-					self.log.info(u'%s has finished processing task %s' % (self.getName(), unicode(task)))
+					self.log.info(u'finished processing task %s' % task.uri)
 
 				time.sleep(1)
 		finally:
@@ -378,7 +378,7 @@ class ImportThread(threading.Thread):
 					track.album_artist = artist
 					self.sa_session.add(artist)
 
-		self.log.info(u'Added track %s to the current session.' % track)
+		self.log.info(u'Added %s by %s to the current session.' % (track.title, track.artist.name))
 
 		#commit the transaction
 		self.sa_session.commit()
@@ -557,7 +557,7 @@ class ImportThread(threading.Thread):
 					album.year = metadata.track
 				elif album.year != metadata.track:
 					# TODO: conflict!
-					self.log.warning(u'album.year conflict for track %s: %d != %d' % (album.title, album.year, metadata.year))
+					self.log.warning(u'album.year conflict for track %s: %d != %d' % (metadata.title, album.year, metadata.year))
 
 		return album
 
@@ -633,5 +633,5 @@ class ImportThread(threading.Thread):
 
 	def stop(self):
 		"""Cleans up the thread"""
-		self.log.info(u'%s.stop has been called' % self.getName())
+		self.log.info(u'Stop has been called')
 		self.running = False

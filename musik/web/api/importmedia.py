@@ -1,5 +1,5 @@
 from musik import log
-from musik.db import ImportTask
+from musik.db import ImportTask, LogEntry
 from musik.util import DateTimeEncoder
 
 import cherrypy
@@ -36,13 +36,18 @@ class Importer():
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 
 		# query for the number of outstanding importer tasks as well as the task that is currently being processed
-		current_task = task = cherrypy.request.db.query(ImportTask).filter(ImportTask.completed == None).order_by(ImportTask.created).first()
+		current_task = cherrypy.request.db.query(ImportTask).filter(ImportTask.completed == None).order_by(ImportTask.created).first()
 		if current_task is not None:
 			current_task = current_task.as_dict()
 
+		warnings = cherrypy.request.db.query(LogEntry).filter(LogEntry.classpath == 'musik.importer').filter(LogEntry.severity == 'WARNING').order_by(LogEntry.created).all()
+		errors = cherrypy.request.db.query(LogEntry).filter(LogEntry.classpath == 'musik.importer').filter(LogEntry.severity == 'ERROR').order_by(LogEntry.created).all()
+
 		status = {
 			'outstanding_tasks': cherrypy.request.db.query(ImportTask).filter(ImportTask.completed == None).count(),
-			'current_task': current_task
+			'current_task': current_task,
+			'warnings': [warning.as_dict() for warning in warnings],
+			'errors': [error.as_dict() for error in errors]
 		}
 
 		# using a special JSONEncoder that can handle datetime objects

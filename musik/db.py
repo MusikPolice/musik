@@ -39,6 +39,10 @@ class LogEntry(Base):
 	def __str__(self):
 		return unicode(self).encode('utf-8')
 
+	def as_dict(self):
+		"""Returns a representation of the log entry as a dictionary"""
+		return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class ImportTask(Base):
 	"""An import task is any operation that results in the import of a media

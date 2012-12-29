@@ -27,7 +27,8 @@ class Log:
 		self.log.setLevel(logging.DEBUG)
 
 		# dictate log message formatting
-		formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+		file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+		cls_formatter = logging.Formatter('%(levelname)s:%(name)s - %(message)s')
 
 		# only log to the console if configured to do so
 		if config.get("Logging", "log_to_console") == "true":
@@ -35,7 +36,7 @@ class Log:
 			ch = logging.StreamHandler()
 			ch.setLevel(logging.DEBUG)
 
-			ch.setFormatter(formatter)
+			ch.setFormatter(cls_formatter)
 			self.log.addHandler(ch)
 
 		# only log to file if configured to do so
@@ -52,7 +53,7 @@ class Log:
 			fs = logging.FileHandler(log_path)
 			fs.setLevel(logging.DEBUG)
 
-			fs.setFormatter(formatter)
+			fs.setFormatter(file_formatter)
 			self.log.addHandler(fs)
 
 		# create a handler that logs to the database. By default, it logs anything WARNING, ERROR, and CRITICAL
