@@ -46,8 +46,10 @@ class Importer():
 		status = {
 			'outstanding_tasks': cherrypy.request.db.query(ImportTask).filter(ImportTask.completed == None).count(),
 			'current_task': current_task,
-			'warnings': [warning.as_dict() for warning in warnings],
-			'errors': [error.as_dict() for error in errors]
+
+			# each result set is turned into a list of json objects and then reversed so more recent messages come first
+			'warnings': [warning.as_dict() for warning in warnings][::-1],
+			'errors': [error.as_dict() for error in errors][::-1]
 		}
 
 		# using a special JSONEncoder that can handle datetime objects
