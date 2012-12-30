@@ -1,9 +1,7 @@
 CherryPy==3.2.2
-Mako==0.7.2
+Mako==0.7.3
 MarkupSafe==0.15
-SQLAlchemy==0.7.8
-argparse==1.2.1
-distribute==0.6.27
+SQLAlchemy==0.8.0b2
 mutagen==1.20
-requests==0.14.2
+requests==1.0.4
 wsgiref==0.1.2
