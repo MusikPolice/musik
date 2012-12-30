@@ -4,11 +4,6 @@
 var nowplaying = null;
 
 /*
- * True if shuffle mode is activated
- */
-var shuffle = true;
-
-/*
  * Loads the specified uri and dumps the contents into #main
  */
 function load_content(url)
@@ -23,7 +18,6 @@ function load_content(url)
  * Plays a random song from the library
  */
 function play_random() {
-	//if shuffle is active, load the next song
 	$.get('/api/tracks/random', function(data)
 	{
 		play_song(data['stream_uri']);
@@ -49,18 +43,7 @@ function play_song(url) {
 		type: 'audio/ogg',
 		url: url,
 		onfinish: function() {
-			if (shuffle)
-			{
-				play_random();
-			}
-			else
-			{
-				//destroy the sound playpause-controlobject
-				$('#playpause-control').html('Play');
-				nowplaying.stop();
-				nowplaying.destruct();
-				nowplaying = null;
-			}
+			play_random();
 		},
 		onpause: function() {
 			$('#playpause-control').html('Play');
@@ -115,26 +98,6 @@ $(document).ready(function()
 	});
 
 	$('#skip-control').click(function() {
-		if (shuffle)
-		{
-			//if shuffle is on, play another song
-			play_random();
-		}
-
-		//TODO: skip behaviour is undefined if shuffle is off
-	});
-
-	$('#shuffle-control').click(function()
-	{
-		if (shuffle)
-		{
-			shuffle = false;
-			$('#shuffle-control').html('Shuffle is off');
-		}
-		else
-		{
-			shuffle = true;
-			$('#shuffle-control').html('Shuffle is on');
-		}
+		play_random();
 	});
 });
