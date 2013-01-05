@@ -94,7 +94,7 @@ class WebService(object):
 				# all api calls require that the client passes HTTP basic authentication
 				'tools.auth_basic.on': True,
 				'tools.auth_basic.realm': 'api',
-				'tools.auth_basic.checkpassword': self.check_password,
+				'tools.auth_basic.checkpassword': api.users.check_password,
 			},
 
 			'/users':
@@ -106,27 +106,6 @@ class WebService(object):
 
 		cherrypy.tree.mount(application.Musik(), '/', config=app_config)
 		cherrypy.tree.mount(api.API(), '/api', config=api_config)
-
-	def check_password(self, realm, username, password):
-		"""Verifies that the supplied username and password are valid.
-		If so, a username header is added to the request object"""
-		db = DatabaseWrapper()
-		session = db.get_session()
-
-		user1 = session.query(User).filter(User.name == username).first()
-		if user1 is None:
-			# bad username
-			return False
-
-		user2 = User(username, password)
-		if user1.passhash == user2.passhash:
-			# valid user
-			cherrypy.request.headers['username'] = username
-			return True
-		else:
-			# bad password
-			return False
-
 
 	# a blocking call that starts the web application listening for requests
 	def start(self, port=8080):

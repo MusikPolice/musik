@@ -2,8 +2,30 @@ import cherrypy
 import json
 
 from musik import log
-from musik.db import User
+from musik.db import DatabaseWrapper, User
 from musik.util import DateTimeEncoder
+
+
+def check_password(realm, username, password):
+	"""Verifies that the supplied username and password are valid.
+	If so, a username header is added to the request object"""
+	db = DatabaseWrapper()
+	session = db.get_session()
+
+	user1 = session.query(User).filter(User.name == username).first()
+	if user1 is None:
+		# bad username
+		return False
+
+	user2 = User(username, password)
+	if user1.passhash == user2.passhash:
+		# valid user
+		cherrypy.request.headers['username'] = username
+		return True
+	else:
+		# bad password
+		return False
+
 
 class UserAccounts():
 	log = None
@@ -40,7 +62,6 @@ class UserAccounts():
 
 		# this is an http 200 ok with no data
 		return json.dumps(None)
-
 
 	def GET(self):
 		"""Returns a list of registered usernames"""
