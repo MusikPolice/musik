@@ -2,7 +2,7 @@ import musik.config
 import musik.web.api
 import musik.web.application
 from musik import log
-import musik.db
+from musik.db import DatabaseWrapper, User
 
 import cherrypy
 from cherrypy.process import wspbus, plugins
@@ -18,7 +18,7 @@ class SAEnginePlugin(plugins.SimplePlugin):
 		self.bus.subscribe(u'bind', self.bind)
 
 	def start(self):
-		self.db = musik.db.DatabaseWrapper()
+		self.db = DatabaseWrapper()
 		self.sa_engine = self.db.get_engine()
 
 	def stop(self):
@@ -85,15 +85,47 @@ class WebService(object):
 			},
 		}
 
-		api_config = {'/':
+		api_config = {
+			'/':
 			{
 				'tools.db.on': True,
 				'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
+
+				# all api calls require that the client passes HTTP basic authentication
+				'tools.auth_basic.on': True,
+				'tools.auth_basic.realm': 'api',
+				'tools.auth_basic.checkpassword': self.check_password,
 			},
+
+			'/users':
+			{
+				# anybody can list existing user accounts or create a new one
+				'tools.auth_basic.on': False,
+			}
 		}
 
 		cherrypy.tree.mount(application.Musik(), '/', config=app_config)
 		cherrypy.tree.mount(api.API(), '/api', config=api_config)
+
+	def check_password(self, realm, username, password):
+		"""Verifies that the supplied username and password are valid.
+		If so, a username header is added to the request object"""
+		db = DatabaseWrapper()
+		session = db.get_session()
+
+		user1 = session.query(User).filter(User.name == username).first()
+		if user1 is None:
+			# bad username
+			return False
+
+		user2 = User(username, password)
+		if user1.passhash == user2.passhash:
+			# valid user
+			cherrypy.request.headers['username'] = username
+			return True
+		else:
+			# bad password
+			return False
 
 
 	# a blocking call that starts the web application listening for requests

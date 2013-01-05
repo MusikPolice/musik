@@ -1,5 +1,7 @@
-from datetime import datetime
+import datetime
+import hashlib
 import os, os.path
+import uuid
 
 from musik import config
 
@@ -11,6 +13,30 @@ from sqlalchemy.orm import backref, relationship, sessionmaker
 
 # Helper to map and register a Python class a db table
 Base = declarative_base()
+
+class User(Base):
+	__tablename__ = 'users'
+
+	id = Column(Integer, primary_key=True)
+	name = Column(String, nullable=False)
+	passhash = Column(String,nullable=False)
+	created = Column(DateTime, nullable=False)
+
+	def __init__(self, username, password):
+		self.name = username
+		self.passhash = self.password_hash(username, password)
+		self.created = datetime.datetime.utcnow()
+
+	def password_hash(self, username, password):
+		hash = hashlib.sha512()
+		hash.update(username)
+		hash.update(password)
+		hash.update(config.get("General", "salt"))
+		return hash.hexdigest()
+
+	def as_dict(self):
+		"""Returns a representation of the log entry as a dictionary"""
+		return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class LogEntry(Base):
@@ -26,7 +52,7 @@ class LogEntry(Base):
 
 	def __init__(self, severity, classpath, message, stack_trace=None):
 		Base.__init__(self)
-		self.created = datetime.utcnow()
+		self.created = datetime.datetime.utcnow()
 		self.severity = severity
 		self.classpath = classpath
 		self.message = message
@@ -62,7 +88,7 @@ class ImportTask(Base):
 	def __init__(self, uri):
 		Base.__init__(self)
 		self.uri = uri
-		self.created = datetime.utcnow()
+		self.created = datetime.datetime.utcnow()
 
 	def __unicode__(self):
 		if self.completed != None:
