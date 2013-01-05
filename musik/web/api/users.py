@@ -3,6 +3,7 @@ import json
 
 from musik import log
 from musik.db import User
+from musik.util import DateTimeEncoder
 
 class UserAccounts():
 	log = None
@@ -47,3 +48,18 @@ class UserAccounts():
 
 		usernames = [u.name for u in cherrypy.request.db.query(User).all()]
 		return json.dumps(usernames)
+
+
+class CurrentUser():
+	log = None
+	exposed = True
+
+	def __init__(self):
+		self.log = log.Log(__name__)
+
+	def GET(self):
+		"""Gets information about the currently logged in user"""
+		cherrypy.response.headers['Content-Type'] = 'application/json'
+
+		user = cherrypy.request.db.query(User).filter(User.name == cherrypy.request.headers['username']).first()
+		return json.dumps(user.as_dict(), cls=DateTimeEncoder)
