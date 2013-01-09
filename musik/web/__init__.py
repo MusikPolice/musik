@@ -57,6 +57,22 @@ class SATool(cherrypy.Tool):
 			self.session.remove()
 
 
+class AuthTool(cherrypy.Tool):
+	"""This tool intercepts requests and checks to see if the user is logged in. If not, a login page is returned in
+	place of whatever the user requested."""
+	log = None
+
+	def __init__(self):
+		self.log = log.Log(__name__)
+		cherrypy.Tool.__init__(self, 'on_start_resource', self.auth_check, priority=30)
+
+	def auth_check(self):
+		"""Checks to see if a username and password combination is set in the session variables. If so, the API is
+		called to ensure that the credentials are still valid."""
+		self.log.info('AuthTool fired')
+		cherrypy.request.authorized = False
+
+
 class WebService(object):
 	"""Application entry point for the web interface and restful API
 	"""
@@ -71,15 +87,23 @@ class WebService(object):
 		# This lets us cleanly stop all threads executed by the application.
 		SAEnginePlugin(cherrypy.engine).subscribe()
 		cherrypy.engine.subscribe("stop", self.stop_threads)
+
+		# make a database transaction available to every request
 		cherrypy.tools.db = SATool()
+
+		# authenticate the user before every request
+		cherrypy.tools.auth = AuthTool()
 
 		app_config = {'/':
 			{
 				'tools.db.on': True,
+				'tools.auth.on': True,
 				'tools.staticdir.root': musik.config.get_root_directory(),
 			},
 			'/static':
 			{
+				# don't do authentication for static files
+				'tools.auth.on': False,
 				'tools.staticdir.on': True,
 				'tools.staticdir.dir': "static",
 			},
