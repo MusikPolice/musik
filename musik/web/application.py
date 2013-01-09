@@ -48,8 +48,8 @@ class Musik:
 		"""
 		result = []
 
-		if cherrypy.request.authorized:
-			template_names = 'error.html'
+		if not cherrypy.request.authorized:
+			template_names = 'login.html'
 
 		if type(template_names) != list:
 			# Create one-element list

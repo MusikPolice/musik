@@ -58,19 +58,23 @@ class SATool(cherrypy.Tool):
 
 
 class AuthTool(cherrypy.Tool):
-	"""This tool intercepts requests and checks to see if the user is logged in. If not, a login page is returned in
-	place of whatever the user requested."""
+	"""This tool intercepts requests and checks to see if the user is logged in. The cherrypy.request.authorized flag
+	will be set with the results of the test."""
 	log = None
 
 	def __init__(self):
 		self.log = log.Log(__name__)
-		cherrypy.Tool.__init__(self, 'on_start_resource', self.auth_check, priority=30)
+		cherrypy.Tool.__init__(self, 'before_handler', self.auth_check, priority=30)
 
 	def auth_check(self):
 		"""Checks to see if a username and password combination is set in the session variables. If so, the API is
 		called to ensure that the credentials are still valid."""
-		self.log.info('AuthTool fired')
-		cherrypy.request.authorized = False
+		self.log.info('AuthTool username=%s, password=%s' % (cherrypy.session.get('username'), cherrypy.session.get('password')))
+		if cherrypy.session.get('username') is None or cherrypy.session.get('password') is None:
+			cherrypy.request.authorized = False
+		else:
+			# TODO: call api to validate credentials?
+			cherrypy.request.authorized = True
 
 
 class WebService(object):
@@ -98,6 +102,7 @@ class WebService(object):
 			{
 				'tools.db.on': True,
 				'tools.auth.on': True,
+				'tools.sessions.on': True,
 				'tools.staticdir.root': musik.config.get_root_directory(),
 			},
 			'/static':

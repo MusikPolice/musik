@@ -38,6 +38,31 @@ nav #player-controls {
 	right: 0px;
 }
 
+#login {
+	margin: auto;
+	width: 300px;
+}
+#login p {
+	margin-bottom: 20px;
+	margin-top: -10px;
+}
+#login form label {
+	display: inline-block;
+	width: 80px;
+}
+#login form input {
+	display: inline;
+	margin-top: 10px;
+	width: 200px;
+}
+#login form div {
+	margin-top: -10px;
+}
+#login form button {
+	margin-left: 218px;
+	width: 80px;
+}
+
 div.validate-error {
 	background-color: #FB9C8A;
 	border: 1px solid #EB8C7A;
