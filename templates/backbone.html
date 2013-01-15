@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Musik Backbone.js App</title>
+        <meta name="author" content="MusikPolice">
+        <meta name="description" content="A backbone.js powered implementation of Musik">
+
+        <link rel="stylesheet" href="/static/styles/reset.css" />
+        <link rel="stylesheet" href="/static/styles/backbone.css" />
+
+        <script type="application/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
+        <script type="application/javascript" src="/static/js/underscore-min.js"></script>
+        <script type="application/javascript" src="/static/js/json2.js"></script>
+        <script type="application/javascript" src="/static/js/ICanHaz.min.js"></script>
+        <script type="application/javascript" src="/static/js/backbone.js-0.9.9-min.js"></script>
+        <script type="application/javascript" src="/static/js/musik.js"></script>
+    </head>
+    <body>
+        <div class='wrapper'>
+            <header>
+                <h1>Musik <small>The world's finest music player</small></h1>
+
+                <nav>
+                    <a href="javascript:void(0);" id="nowplaying-link">Now Playing</a>
+                    <a href="javascript:void(0);" id="artist-link">Artists</a>
+                    <a href="javascript:void(0);" id="albums-link">Albums</a>
+                    <a href="javascript:void(0);" class="add-media-link">Add Media</a>
+                    <a href="javascript:void(0);" id="search-link">Search</a>
+
+                    <span class="player-controls">
+                        <a href="javascript:void(0);" id="playpause-control">Play</a>
+                        <a href="javascript:void(0);" id="skip-control">Skip</a>
+                    </span>
+                </nav>
+            </header>
+
+            <div class='content'>
+                <p>This is where the content goes</p>
+            </div>
+
+            <footer>
+                <p>&copy; <a href="http://github.com/MusikPolice/musik/" class="muted">MusikPolice</a> 2012</p>
+            </footer>
+
+            <!--ICanHaz Templates -->
+            <script id="user" type="text/html">
+                <ul class="user">
+                    <li><a href="#">{{ username }}</a></li>
+                    <li><a href="#" id="logout">logout</a></li>
+                </ul>
+            </script>
+        </div>
+    </body>
+</html>

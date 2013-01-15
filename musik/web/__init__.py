@@ -1,9 +1,10 @@
-import datetime
-
 import musik
 import musik.config
+from musik.web import api
+from musik.web import application
+from musik.web import backbone
 from musik import log
-from musik.db import DatabaseWrapper, User
+from musik.db import DatabaseWrapper
 
 import cherrypy
 from cherrypy.process import plugins
@@ -107,7 +108,7 @@ class WebService(object):
         app_config = {'/':
             {
                 'tools.db.on': True,
-                'tools.auth.on': True,
+                'tools.auth.on': False,
                 'tools.sessions.on': True,
                 'tools.staticdir.root': musik.config.get_root_directory(),
             },
@@ -129,7 +130,7 @@ class WebService(object):
                 # all api calls require that the client passes HTTP basic authentication
                 'tools.auth_basic.on': True,
                 'tools.auth_basic.realm': 'api',
-                'tools.auth_basic.checkpassword': musik.web.api.users.check_password,
+                'tools.auth_basic.checkpassword': api.users.check_password,
             },
 
             '/users':
@@ -139,8 +140,9 @@ class WebService(object):
             }
         }
 
-        cherrypy.tree.mount(musik.web.application.Musik(), '/', config=app_config)
-        cherrypy.tree.mount(musik.web.api.API(), '/api', config=api_config)
+        cherrypy.tree.mount(application.Musik(), '/', config=app_config)
+        cherrypy.tree.mount(backbone.Musik(), '/backbone', config=app_config)
+        cherrypy.tree.mount(api.API(), '/api', config=api_config)
 
     # a blocking call that starts the web application listening for requests
     def start(self, port=8080):
