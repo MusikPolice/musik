@@ -8,6 +8,11 @@ h1 small {
     font-weight: normal;
 }
 
+h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
 a {
     color: #0084B4;
     text-decoration: none;
@@ -29,6 +34,7 @@ header {
   border-bottom: 1px solid #eee;
   padding: 0 0 10px 0;
   margin: 10px 0 0 0;
+  position: relative;
 }
 
 header h1 {
@@ -39,19 +45,70 @@ header nav {
     position: relative;
 }
 
-header nav a {
-    margin: 0 15px 0 0;
+header nav li {
+  display: inline-block;
+  margin-left: 20px;
+  text-align: right;
+}
+
+header nav ul.navigation li {
+  margin-left: 0px;
+  margin-right: 20px;
+  text-align: left;
 }
 
 header nav .player-controls {
-    position: absolute;
-    right: 0px;
+  bottom: 0px;
+  position: absolute;
+  right: 0px;
+}
+
+header nav .player-controls a {
+  text-align: right;
+}
+
+header ul.current-user {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+}
+
+header ul.current-user li {
+  font-size: 0.8em;
+  margin-left: 10px;
+  text-align: right;
 }
 
 .content {
     margin-bottom: 20px;
     margin-top: 20px;
     min-height: 300px;
+}
+
+.content .login {
+  margin: auto;
+  width: 300px;
+}
+.content .login p {
+  margin-bottom: 20px;
+}
+.content .login form {
+  margin-bottom: 10px;
+  margin-top: -20px;
+}
+.content .login form label {
+  display: inline-block;
+  width: 80px;
+}
+.content .login form input {
+  display: inline;
+  margin-top: 10px;
+  width: 200px;
+}
+.content .login form button {
+  margin-left: 210px;
+  margin-top: 10px;
+  width: 80px;
 }
 
 footer {

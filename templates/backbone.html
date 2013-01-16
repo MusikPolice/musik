@@ -22,16 +22,18 @@
                 <h1>Musik <small>The world's finest music player</small></h1>
 
                 <nav>
-                    <a href="javascript:void(0);" id="nowplaying-link">Now Playing</a>
-                    <a href="javascript:void(0);" id="artist-link">Artists</a>
-                    <a href="javascript:void(0);" id="albums-link">Albums</a>
-                    <a href="javascript:void(0);" class="add-media-link">Add Media</a>
-                    <a href="javascript:void(0);" id="search-link">Search</a>
+                    <ul class="navigation">
+                        <li><a href="javascript:void(0);" id="nowplaying-link">Now Playing</a></li>
+                        <li><a href="javascript:void(0);" id="artist-link">Artists</a></li>
+                        <li><a href="javascript:void(0);" id="albums-link">Albums</a></li>
+                        <li><a href="javascript:void(0);" class="add-media-link">Add Media</a></li>
+                        <li><a href="javascript:void(0);" id="search-link">Search</a></li>
+                    </ul>
 
-                    <span class="player-controls">
-                        <a href="javascript:void(0);" id="playpause-control">Play</a>
-                        <a href="javascript:void(0);" id="skip-control">Skip</a>
-                    </span>
+                    <ul class="player-controls">
+                        <li><a href="javascript:void(0);" id="playpause-control">Play</a></li>
+                        <li><a href="javascript:void(0);" id="skip-control">Skip</a></li>
+                    </ul>
                 </nav>
             </header>
 
@@ -44,11 +46,31 @@
             </footer>
 
             <!--ICanHaz Templates -->
-            <script id="user" type="text/html">
-                <ul class="user">
+            <script id="currentUser" type="text/html">
+                <ul class="current-user">
                     <li><a href="#">{{ username }}</a></li>
                     <li><a href="#" id="logout">logout</a></li>
                 </ul>
+            </script>
+
+            <script id="login" type="text/html">
+                <div class='login'>
+                    <h2>FAILBOATS AWAY!</h2>
+                    <p>You&#39;ll need to log in to listen to your tunes.</p>
+                    <form>
+                        <div>
+                            <label for="username">Username:</label>
+                            <input id="username" name="username" type="text">
+                        </div>
+                        <div>
+                            <label for="password">Password:</label>
+                            <input id="password" name="password" type="password">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </form>
+                    <p>If you don&#39;t have an account, <a href='#'>register now</a>.</p>
+                </div>
             </script>
         </div>
     </body>
