@@ -75,6 +75,7 @@ header ul.current-user {
 
 header ul.current-user li {
   font-size: 0.8em;
+  display: inline-block;
   margin-left: 10px;
   text-align: right;
 }
