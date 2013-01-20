@@ -31,7 +31,7 @@ $(function() {
 
     //visual representation of a user
     var CurrentUserView = Backbone.View.extend({
-        el: $('nav'),
+        el: $('header'),
 
         initialize: function() {
             //show the view on login
@@ -46,7 +46,7 @@ $(function() {
         },
 
         events: {
-            'click li a#logout': 'logout'
+            'click a#logout': 'logout'
         },
 
         render: function() {
@@ -64,8 +64,13 @@ $(function() {
         el: $('.content'),
 
         initialize: function() {
+            //hide login form once login is complete...
             this.listenTo(dispatcher, 'login', function() {
-                $('input#password').val('');
+                $('.login').remove();
+            });
+            //...and show it again on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                $('.content').html(this.render().el);
             });
         },
 
