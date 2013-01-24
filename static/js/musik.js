@@ -4,6 +4,21 @@ $(function() {
     //event dispatcher
     var dispatcher = _.clone(Backbone.Events);
 
+    //returns the contents of the HTTP Authorization header
+    function getAuthHash() {
+        var token = musik.currentUser.username + ':' + musik.currentUser.token;
+        var hash = btoa(token);
+        return 'Basic ' + hash;
+    }
+
+    //listen for ajax errors and throw a logout even when appropriate
+    $(document).ajaxError(function(e, xhr, options) {
+        if (xhr.status == 403) {
+            console.log('firing logout event');
+            musik.currentUser.logout();
+        }
+    });
+
     //logical model of a user
     var User = Backbone.Model.extend({
         initialize: function() {
@@ -13,12 +28,43 @@ $(function() {
         },
 
         login: function(username, password) {
-            this.username = username;
-            dispatcher.trigger('login');
+            $.ajax({
+                type: 'PUT',
+                url: '/api/currentuser',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'text',
+                headers: {
+                    'Authorization': getAuthHash()
+                },
+                success: function (data, textStatus, jqXHR) {
+                    $.each(data, function(key, value) {
+                        switch(key) {
+                            case 'name':
+                                this.username = value;
+                                break;
+                            case 'token':
+                                this.token = value;
+                                break;
+                            case 'token_expires':
+                                this.expires = value;
+                                break;
+                        }
+                    });
+
+                    //tell everybody else that the login succeeded
+                    dispatcher.trigger('login');
+                },
+                error: function (data, textStatus, jqXHR) {
+                    console.log('showing error message');
+                    $('.login .error').show();
+                }
+            });
         },
 
         logout: function() {
             this.username = null;
+            this.token = null;
+            this.expires = null;
             dispatcher.trigger('logout');
         },
 
@@ -70,7 +116,10 @@ $(function() {
             });
             //...and show it again on logout
             this.listenTo(dispatcher, 'logout', function() {
-                $('.content').html(this.render().el);
+                //only re-render the form if it isn't currently displayed
+                if ($('.content div').attr('class') != 'login') {
+                    this.render();
+                }
             });
         },
 
@@ -80,6 +129,8 @@ $(function() {
 
         render: function() {
             this.el = ich.login();
+            $('.content').html(this.el);
+            $('.login .error').hide();
             return this;
         },
 
@@ -96,5 +147,6 @@ $(function() {
     var currentUserView = new CurrentUserView({model: musik.currentUser});
 
     //display the login view
-    $('.content').html((new LoginView()).render().el);
+    var loginView = new LoginView();
+    loginView.render();
 });

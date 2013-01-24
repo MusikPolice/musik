@@ -60,30 +60,6 @@ class SATool(cherrypy.Tool):
             self.session.remove()
 
 
-class AuthTool(cherrypy.Tool):
-    """This tool intercepts application requests and checks to see if the user is logged in.
-    The cherrypy.request.authorized flag will be set with the results of the test."""
-    log = None
-
-    def __init__(self):
-        self.log = log.Log(__name__)
-        cherrypy.Tool.__init__(self, 'before_handler', self.auth_check, priority=30)
-
-    def auth_check(self):
-        """Returns true if the user's credentials have been stored in a session and they can
-        be authenticated"""
-        token = cherrypy.session.get('token')
-
-        if token is not None:
-            musik.web.api.users.check_password(token, None)
-
-        if cherrypy.request.authorized:
-            cherrypy.session['token'] = cherrypy.request.user.token
-            return True
-        else:
-            return False
-
-
 class WebService(object):
     """Application entry point for the web interface and restful API
     """
@@ -102,20 +78,16 @@ class WebService(object):
         # make a database transaction available to every request
         cherrypy.tools.db = SATool()
 
-        # authenticate the user before every request
-        cherrypy.tools.auth = AuthTool()
+        # a request handler that checks the request credentials
+        cherrypy.tools.authorize = cherrypy._cptools.HandlerTool(api.users.check_password)
 
         app_config = {'/':
             {
                 'tools.db.on': True,
-                'tools.auth.on': False,
-                'tools.sessions.on': True,
-                'tools.staticdir.root': musik.config.get_root_directory(),
             },
             '/static':
             {
-                # don't do authentication for static files
-                'tools.auth.on': False,
+                'tools.staticdir.root': musik.config.get_root_directory(),
                 'tools.staticdir.on': True,
                 'tools.staticdir.dir': "static",
             },
@@ -128,20 +100,17 @@ class WebService(object):
                 'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
 
                 # all api calls require that the client passes HTTP basic authentication
-                'tools.auth_basic.on': True,
-                'tools.auth_basic.realm': 'api',
-                'tools.auth_basic.checkpassword': api.users.check_password,
+                'tools.authorize.on': True,
             },
 
             '/users':
             {
                 # anybody can list existing user accounts or create a new one
-                'tools.auth_basic.on': False,
+                'tools.authorize.on': False,
             }
         }
 
-        cherrypy.tree.mount(application.Musik(), '/', config=app_config)
-        cherrypy.tree.mount(backbone.Musik(), '/backbone', config=app_config)
+        cherrypy.tree.mount(backbone.Musik(), '/', config=app_config)
         cherrypy.tree.mount(api.API(), '/api', config=api_config)
 
     # a blocking call that starts the web application listening for requests
