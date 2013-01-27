@@ -90,12 +90,8 @@ header ul.current-user li {
   margin: auto;
   width: 300px;
 }
-.content .login p {
-  margin-bottom: 20px;
-}
 .content .login form {
   margin-bottom: 10px;
-  margin-top: -20px;
 }
 .content .login form label {
   display: inline-block;
@@ -104,12 +100,43 @@ header ul.current-user li {
 .content .login form input {
   display: inline;
   margin-top: 10px;
-  width: 200px;
+  width: 210px;
 }
 .content .login form button {
-  margin-left: 210px;
+  margin-left: 220px;
   margin-top: 10px;
   width: 80px;
+}
+
+.content .register {
+  margin: auto;
+  width: 320px;
+}
+.content .register form {
+  margin-bottom: 10px;
+}
+.content .register form label {
+  display: inline-block;
+  width: 80px;
+}
+.content .register form input {
+  display: inline;
+  margin-top: 10px;
+  width: 230px;
+}
+.content .register form button {
+  margin-left: 240px;
+  margin-top: 10px;
+  width: 80px;
+}
+
+.content .error {
+  background-color: #B25000;
+  color: #FFFFFF;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding: 5px;
+  text-align: center;
 }
 
 footer {

@@ -58,7 +58,7 @@
                     <h2>FAILBOATS AWAY!</h2>
                     <p>You&#39;ll need to log in to listen to your tunes.</p>
                     <div class='error' style='display:none;'>
-                        <p>Wrong username or password. Try again, Chief.</p>
+                        <p>Wrong username or password.<br /> Try again, Chief.</p>
                     </div>
                     <form>
                         <div>
@@ -70,9 +70,33 @@
                             <input id="password" name="password" type="password">
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Login</button>
+                        <button type="submit" class="login">Login</button>
                     </form>
-                    <p>If you don&#39;t have an account, <a href='#'>register now</a>.</p>
+                    <p>If you don&#39;t have an account, <a class='register' href='javascript:void(0);'>register now</a>.</p>
+                </div>
+            </script>
+
+            <script id="register" type="text/html">
+                <div class='register'>
+                    <h2>CREATE A NEW ACCOUNT</h2>
+                    <p>Enter your credentials below.</p>
+                    <form>
+                        <div>
+                            <label for="username">Username:</label>
+                            <input id="username" name="username" type="text">
+                        </div>
+                        <div>
+                            <label for="password">Password:</label>
+                            <input id="password" name="password" type="password">
+                        </div>
+                        <div>
+                            <label for="password2">Password:</label>
+                            <input id="password2" name="password2" type="password">
+                        </div>
+
+                        <button type="submit" class="register">Create</button>
+                    </form>
+                    <p>If you already have an account, <a class='login' href='javascript:void(0);'>login</a>.</p>
                 </div>
             </script>
         </div>

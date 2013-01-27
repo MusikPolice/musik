@@ -55,8 +55,7 @@ $(function() {
                     dispatcher.trigger('login');
                 },
                 error: function (data, textStatus, jqXHR) {
-                    console.log('showing error message');
-                    $('.login .error').show();
+                    musik.loginView.showError();
                 }
             });
         },
@@ -112,7 +111,7 @@ $(function() {
         initialize: function() {
             //hide login form once login is complete...
             this.listenTo(dispatcher, 'login', function() {
-                $('.login').remove();
+                $('div.login').remove();
             });
             //...and show it again on logout
             this.listenTo(dispatcher, 'logout', function() {
@@ -124,29 +123,81 @@ $(function() {
         },
 
         events: {
-            'click button': 'submit'
+            'click button.login': 'submit',
+            'click a.register': 'register'
         },
 
         render: function() {
+            console.log('showing login view');
             this.el = ich.login();
             $('.content').html(this.el);
             $('.login .error').hide();
+            $('.login input#username').focus();
+            return this;
+        },
+
+        showError: function() {
+            console.log('showing error message');
+            $('.login input').val('');
+            $('.login input#username').focus();
+            $('.login .error').slideDown(400);
+        },
+
+        submit: function() {
+            console.log('log in submit button pressed');
+            musik.currentUser.login($('input#username').val(), $('input#password').val());
+            return false;
+        },
+
+        register: function() {
+            console.log('register new account link clicked');
+            musik.registerView.render();
+        }
+    });
+
+    //registration form view
+    var RegisterView = Backbone.View.extend({
+        el: $('.content'),
+
+        initialize: function() {
+            //hide form on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                $('div.register').remove();
+            });
+        },
+
+        events: {
+            'click button.register': 'submit',
+            'click a.login': 'login'
+        },
+
+        render: function() {
+            console.log('showing register view');
+            this.el = ich.register();
+            $('.content').html(this.el);
+            $('.register input#username').focus();
             return this;
         },
 
         submit: function() {
-            musik.currentUser.login($('input#username').val(), $('input#password').val());
+            console.log('register submit button pressed');
+            //musik.currentUser.login($('input#username').val(), $('input#password').val());
             return false;
+        },
+
+        login: function() {
+            console.log('login link clicked');
+            musik.loginView.render();
         }
     });
 
     //make important objects visible to the debug console
-    musik = {'currentUser': new User()}
-
-    //create the current user view but don't display it yet
-    var currentUserView = new CurrentUserView({model: musik.currentUser});
+    musik = {}
+    musik['currentUser'] = new User()
+    musik['loginView'] = new LoginView()
+    musik['registerView'] = new RegisterView()
+    musik['currentUserView'] = new CurrentUserView({model: musik.currentUser})
 
     //display the login view
-    var loginView = new LoginView();
-    loginView.render();
+    musik.loginView.render();
 });
