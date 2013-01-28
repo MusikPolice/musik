@@ -270,12 +270,35 @@ $(function() {
         }
     });
 
+    var NowPlayingView = Backbone.View.extend({
+        el: $('.content'),
+
+        initialize: function() {
+            //show the view on login
+            this.listenTo(dispatcher, 'login', function() {
+                this.render();
+            });
+
+            //remove the view on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                $('.content div.nowplaying').remove();
+            });
+        },
+
+        render: function() {
+            this.el = ich.nowplaying();
+            $('.content').html(this.el);
+            return this;
+        },
+    });
+
     //make important objects visible to the debug console
     musik = {}
     musik['currentUser'] = new User()
     musik['loginView'] = new LoginView()
     musik['registerView'] = new RegisterView()
     musik['currentUserView'] = new CurrentUserView({model: musik.currentUser})
+    musik['nowPlayingView'] = new NowPlayingView();
 
     //display the login view
     musik.loginView.render();
