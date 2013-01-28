@@ -17,6 +17,7 @@ def check_password():
     cherrypy.request.user member is set to the authenticated user."""
     db = DatabaseWrapper()
     session = db.get_session()
+    logg = log.Log(__name__)
 
     if 'authorization' in cherrypy.request.headers:
         auth = httpauth.parseAuthorization(cherrypy.request.headers['authorization'])
@@ -27,6 +28,8 @@ def check_password():
         password = auth['password']
         user = None
 
+        logg.info('username=%s, password=%s' % (username, password))
+
         # try to treat username as a session token
         if username is not None:
             user = session.query(User).filter(User.name == username and User.token == password and User.token_expires > datetime.datetime.utcnow()).first()
@@ -35,12 +38,18 @@ def check_password():
                 session.commit()
                 cherrypy.request.user = user
 
+        logg.info('username lookup')
+
         # try to look up username and password in the database
         if user is None and username is not None and password is not None:
+            logg.info('inside if')
             user = session.query(User).filter(User.name == username).first()
             if user is not None and user.passhash == user.password_hash(username, password):
                 cherrypy.request.user = user
+            else:
+                logg.info('user is none')
 
+        logg.info('none check:%s' % user is None)
         if user is not None:
             cherrypy.request.authorized = True
             # if the user was authorized, we didn't handle the request
@@ -113,7 +122,7 @@ class UserAccounts():
 
         # return the user to the calling function.
         # Note that the password hash is not returned
-        return json.dumps(user.as_dict, cls=DateTimeEncoder)
+        return json.dumps(user.as_dict(), cls=DateTimeEncoder)
 
     def GET(self):
         """Returns a list of registered usernames"""

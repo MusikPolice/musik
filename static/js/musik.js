@@ -28,6 +28,11 @@ $(function() {
         },
 
         login: function(username, password) {
+            //temporarily set user creds
+            musik.currentUser.username = username;
+            musik.currentUser.token = password;
+
+            //try to log in
             $.ajax({
                 type: 'PUT',
                 url: '/api/currentuser',
@@ -55,7 +60,43 @@ $(function() {
                     dispatcher.trigger('login');
                 },
                 error: function (data, textStatus, jqXHR) {
+                    this.username = '';
+                    this.token = '';
                     musik.loginView.showError();
+                }
+            });
+        },
+
+        register: function(username, password) {
+            request = {'username': username,
+                       'password': password};
+
+            $.ajax({
+                type: 'POST',
+                url: '/api/users',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(request),
+                dataType: 'text',
+                success: function (data, textStatus, jqXHR) {
+                    $.each(data, function(key, value) {
+                        switch(key) {
+                            case 'name':
+                                this.username = value;
+                                break;
+                            case 'token':
+                                this.token = value;
+                                break;
+                            case 'token_expires':
+                                this.expires = value;
+                                break;
+                        }
+                    });
+
+                    //tell everybody else that the login succeeded
+                    dispatcher.trigger('login');
+                },
+                error: function (data, textStatus, jqXHR) {
+                    musik.registerView.showError('Ah shit you broke it. Try again later.');
                 }
             });
         },
@@ -150,7 +191,6 @@ $(function() {
         },
 
         register: function() {
-            console.log('register new account link clicked');
             musik.registerView.render();
         }
     });
@@ -179,9 +219,48 @@ $(function() {
             return this;
         },
 
+        showError: function(msg) {
+            console.log('showing error message');
+            $('.register input#password, .register input#password2').val('');
+            $('.register .error p').html(msg);
+            $('.register .error').slideDown(400);  
+        },
+
         submit: function() {
             console.log('register submit button pressed');
-            //musik.currentUser.login($('input#username').val(), $('input#password').val());
+
+            //make sure that the username is unique
+            $.ajax({
+                type: 'GET',
+                url: '/api/users',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'text',
+                success: function (data, textStatus, jqXHR) {
+                    data = JSON.parse(data);
+                    for (var i = 0; i < data.length; i++) {
+                        var user = data[i];
+                        if ($('.register input#username').val() == user) {
+                            musik.registerView.showError('Pick a unique username, fool.');
+                            $('.register input#username').focus();
+                            return false;
+                        }
+                    }
+
+                    //make sure that the passwords match
+                    if ($('input#password').val() != $('input#password2').val()) {
+                        musik.registerView.showError('Those passwords don\'t match, homie.');
+                        $('.register input#password').focus();
+                        return false;
+                    }
+
+                    //actually create the account
+                    musik.currentUser.register($('input#username').val(), $('input#password').val());
+                },
+                error: function() {
+                    musik.registerView.showError('Hmm, something is broken. Come back later.');
+                }
+            });
+
             return false;
         },
 

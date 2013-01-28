@@ -117,15 +117,15 @@ header ul.current-user li {
 }
 .content .register form label {
   display: inline-block;
-  width: 80px;
+  width: 130px;
 }
 .content .register form input {
   display: inline;
   margin-top: 10px;
-  width: 230px;
+  width: 170px;
 }
 .content .register form button {
-  margin-left: 240px;
+  margin-left: 230px;
   margin-top: 10px;
   width: 80px;
 }
