@@ -145,6 +145,54 @@ $(function() {
         }
     });
 
+    //the navigation menu
+    var NavigationView = Backbone.View.extend({
+        el: $('header'),
+
+        initialize: function() {
+            //show the view on login
+            this.listenTo(dispatcher, 'login', function() {
+                console.log('showing navigation view');
+                this.render();
+            });
+
+            //remove the view on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                console.log('hiding navigation view');
+                $('header nav.navigation').remove();
+            });
+        },
+
+        events: {
+            'click .pages a.nowplaying-nav': 'showNowPlaying',
+            'click .pages a.artists-nav': 'showArtists',
+            'click .pages a.albums-nav': 'showAlbums',
+            'click .pages a.addmedia-nav': 'showAddMedia'
+        },
+
+        render: function() {
+            this.el = ich.navigation();
+            $('header').append(this.el);
+            return this;
+        },
+
+        showNowPlaying: function() {
+            alert('now playing');
+        },
+
+        showArtists: function() {
+            alert('artists');
+        },
+
+        showAlbums: function() {
+            alert('albums');
+        },
+
+        showAddMedia: function() {
+            alert('add media');
+        }
+    });
+
     //visual representation of the login form
     var LoginView = Backbone.View.extend({
         el: $('.content'),
@@ -298,6 +346,7 @@ $(function() {
     musik['loginView'] = new LoginView()
     musik['registerView'] = new RegisterView()
     musik['currentUserView'] = new CurrentUserView({model: musik.currentUser})
+    musik['navigationView'] = new NavigationView();
     musik['nowPlayingView'] = new NowPlayingView();
 
     //display the login view

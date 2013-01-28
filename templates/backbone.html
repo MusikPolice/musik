@@ -20,21 +20,6 @@
         <div class='wrapper'>
             <header>
                 <h1>Musik <small>The world's finest music player</small></h1>
-
-                <nav>
-                    <ul class="navigation">
-                        <li><a href="javascript:void(0);" id="nowplaying-link">Now Playing</a></li>
-                        <li><a href="javascript:void(0);" id="artist-link">Artists</a></li>
-                        <li><a href="javascript:void(0);" id="albums-link">Albums</a></li>
-                        <li><a href="javascript:void(0);" class="add-media-link">Add Media</a></li>
-                        <li><a href="javascript:void(0);" id="search-link">Search</a></li>
-                    </ul>
-
-                    <ul class="player-controls">
-                        <li><a href="javascript:void(0);" id="playpause-control">Play</a></li>
-                        <li><a href="javascript:void(0);" id="skip-control">Skip</a></li>
-                    </ul>
-                </nav>
             </header>
 
             <div class='content'>
@@ -51,6 +36,23 @@
                     <li><a href='#'>{{ username }}</a></li>
                     <li><a href='#' id="logout">logout</a></li>
                 </ul>
+            </script>
+
+            <script id="navigation" type="text/html">
+                <nav class="navigation">
+                    <ul class="pages">
+                        <li><a href="javascript:void(0);" class="nowplaying-nav">Now Playing</a></li>
+                        <li><a href="javascript:void(0);" class="artists-nav">Artists</a></li>
+                        <li><a href="javascript:void(0);" class="albums-nav">Albums</a></li>
+                        <li><a href="javascript:void(0);" class="addmedia-nav">Add Media</a></li>
+                        <li><a href="javascript:void(0);" class="search-nav">Search</a></li>
+                    </ul>
+
+                    <ul class="player-controls">
+                        <li><a href="javascript:void(0);" class="playpause">Play</a></li>
+                        <li><a href="javascript:void(0);" class="skip">Skip</a></li>
+                    </ul>
+                </nav>
             </script>
 
             <script id="login" type="text/html">
