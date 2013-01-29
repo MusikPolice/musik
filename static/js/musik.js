@@ -177,7 +177,7 @@ $(function() {
         },
 
         showNowPlaying: function() {
-            alert('now playing');
+            musik.nowPlayingView.render();
         },
 
         showArtists: function() {
@@ -189,7 +189,7 @@ $(function() {
         },
 
         showAddMedia: function() {
-            alert('add media');
+            musik.addMediaView.render();
         }
     });
 
@@ -340,6 +340,39 @@ $(function() {
         },
     });
 
+    //import media page
+    var AddMediaView = Backbone.View.extend({
+        el: $('.content'),
+
+        initialize: function() {
+            //remove the view on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                $('.content div.addmedia').remove();
+            });
+        },
+
+        events: {
+            'click input.browse': 'browse',
+            'click button.addmedia': 'submit'
+        },
+
+        render: function() {
+            this.el = ich.addmedia();
+            $('.content').html(this.el);
+            return this;
+        },
+
+        browse: function() {
+            console.log('Add media browse button clicked.');
+            return false;
+        },
+
+        submit: function() {
+            console.log('Add media submit button clicked.');
+            return false;
+        }
+    });
+
     //make important objects visible to the debug console
     musik = {}
     musik['currentUser'] = new User()
@@ -348,6 +381,7 @@ $(function() {
     musik['currentUserView'] = new CurrentUserView({model: musik.currentUser})
     musik['navigationView'] = new NavigationView();
     musik['nowPlayingView'] = new NowPlayingView();
+    musik['addMediaView'] = new AddMediaView();
 
     //display the login view
     musik.loginView.render();

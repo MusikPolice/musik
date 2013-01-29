@@ -130,6 +130,32 @@ header ul.current-user li {
   width: 80px;
 }
 
+.content .addmedia {
+  position: relative;
+  margin: auto;
+  width: 465px;
+}
+.content .addmedia form label {
+  display: inline-block;
+  width: 50px;
+}
+.content .addmedia form input {
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+.content .addmedia form input[type=text] {
+  width: 320px;
+}
+.content .addmedia form input[type=button] {
+  width: 80px;
+}
+.content .addmedia form button {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 120px;
+}
+
 .content .error {
   background-color: #B25000;
   color: #FFFFFF;
