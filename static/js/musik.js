@@ -271,7 +271,7 @@ $(function() {
             console.log('showing error message');
             $('.register input#password, .register input#password2').val('');
             $('.register .error p').html(msg);
-            $('.register .error').slideDown(400);  
+            $('.register .error').slideDown(400);
         },
 
         submit: function() {
@@ -359,6 +359,9 @@ $(function() {
         render: function() {
             this.el = ich.addmedia();
             $('.content').html(this.el);
+            $('.addmedia .error').hide();
+            $('.addmedia .success').hide();
+            $('.addmedia #importmedia #path').focus();
             return this;
         },
 
@@ -369,7 +372,58 @@ $(function() {
 
         submit: function() {
             console.log('Add media submit button clicked.');
+            $('.addmedia .error').hide();
+            $('.addmedia .success').hide();
+
+            //TODO: better error handling here wouldn't be so bad
+            var p = $('.addmedia #importmedia #path').val();
+            if (p == '') {
+                musik.addMediaView.showError('That\'s not a real path. Try again, skipper.');
+                return false;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '/api/importer/',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify({
+                    path: p
+                }),
+                headers: {
+                    'Authorization': getAuthHash()
+                },
+                dataType: 'text',
+                success: function() {
+                    musik.addMediaView.showSuccess('Great success!<br />Your media is being imported.');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    if (jqXHR.status == 404) {
+                        musik.addMediaView.showError('That path doesn\'t exist.');
+                    } else {
+                        musik.addMediaView.showError('Something broke. Try again later.');
+                    }
+                }
+            });
+
             return false;
+        },
+
+        showError: function(msg) {
+            console.log('showing error message');
+            $('.addmedia .success').hide();
+            $('.addmedia #importmedia #path').val('');
+            $('.addmedia .error p').html(msg);
+            $('.addmedia .error').slideDown(400);
+            $('.addmedia #importmedia #path').focus();
+        },
+
+        showSuccess: function(msg) {
+            console.log('showing success message');
+            $('.addmedia .error').hide();
+            $('.addmedia #importmedia #path').val('');
+            $('.addmedia .success p').html(msg);
+            $('.addmedia .success').slideDown(400);
+            $('.addmedia #importmedia #path').focus();
         }
     });
 

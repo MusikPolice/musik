@@ -156,6 +156,14 @@ header ul.current-user li {
   width: 120px;
 }
 
+.content .success {
+  background-color: #04B200;
+  color: #FFFFFF;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding: 5px;
+  text-align: center;
+}
 .content .error {
   background-color: #B25000;
   color: #FFFFFF;
