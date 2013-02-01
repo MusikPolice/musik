@@ -19,7 +19,8 @@ $(function() {
         }
     });
 
-    //override Backbone.sync to include authorization header while preserving all other functionality
+    //override Backbone.sync to include our HTTP basic authorization header while 
+    //preserving all existing functionality
     Backbone.sync = function(method, model, options) {
         var type = methodMap[method];
 
@@ -30,7 +31,13 @@ $(function() {
         });
 
         // Default JSON-request options.
-        var params = {type: type, dataType: 'json'};
+        var params = {
+            type: type, 
+            dataType: 'json',
+            headers: {
+                'Authorization': getAuthHash()
+            }
+        };
 
         // Ensure that we have a URL.
         if (!options.url) {
