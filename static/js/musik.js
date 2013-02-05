@@ -21,6 +21,14 @@ $(function() {
 
     //override Backbone.sync to include our HTTP basic authorization header while 
     //preserving all existing functionality
+    // Map from CRUD to HTTP for our default `Backbone.sync` implementation.
+    var methodMap = {
+        'create': 'POST',
+        'update': 'PUT',
+        'patch': 'PATCH',
+        'delete': 'DELETE',
+        'read': 'GET'
+    };
     Backbone.sync = function(method, model, options) {
         var type = methodMap[method];
 
@@ -32,7 +40,8 @@ $(function() {
 
         // Default JSON-request options.
         var params = {
-            type: type, 
+            type: type,
+            contentType: 'application/json; charset=utf-8',
             dataType: 'json',
             headers: {
                 'Authorization': getAuthHash()
@@ -105,14 +114,8 @@ $(function() {
             musik.currentUser.token = password;
 
             //try to log in
-            $.ajax({
-                type: 'PUT',
+            Backbone.sync('update', this, {
                 url: '/api/currentuser',
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'text',
-                headers: {
-                    'Authorization': getAuthHash()
-                },
                 success: function (data, textStatus, jqXHR) {
                     $.each(data, function(key, value) {
                         switch(key) {
