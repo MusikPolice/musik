@@ -29,7 +29,7 @@ def check_password():
 
         # try to treat username as a session token
         if username is not None:
-            user = session.query(User).filter(User.name == username and User.token == password and User.token_expires > datetime.datetime.utcnow()).first()
+            user = session.query(User).filter(User.username == username and User.token == password and User.token_expires > datetime.datetime.utcnow()).first()
             if user is not None:
                 user.update_token_expiry()
                 session.commit()
@@ -37,7 +37,7 @@ def check_password():
 
         # try to look up username and password in the database
         if user is None and username is not None and password is not None:
-            user = session.query(User).filter(User.name == username).first()
+            user = session.query(User).filter(User.username == username).first()
             if user is not None and user.passhash == user.password_hash(username, password):
                 cherrypy.request.user = user
 
@@ -94,7 +94,7 @@ class UserAccounts():
         # ensure that a valid username and password were specified
         request = json.loads(cherrypy.request.body.read())
         username = request['username']
-        password = request['password']
+        password = request['token']
 
         if username is None or username == '':
             raise cherrypy.HTTPError(400, "Unspecified username")
@@ -103,7 +103,7 @@ class UserAccounts():
             raise cherrypy.HTTPError(400, "Unspecified password")
 
         # make sure that username doesn't already exist
-        if cherrypy.request.db.query(User).filter(User.name == username).first() is not None:
+        if cherrypy.request.db.query(User).filter(User.username == username).first() is not None:
             raise cherrypy.HTTPError(400, "Username already exists")
 
         # create the user
@@ -119,5 +119,5 @@ class UserAccounts():
         """Returns a list of registered usernames"""
         cherrypy.response.headers['Content-Type'] = 'application/json'
 
-        usernames = [u.name for u in cherrypy.request.db.query(User).all()]
+        usernames = [u.username for u in cherrypy.request.db.query(User).all()]
         return json.dumps(usernames)

@@ -19,174 +19,64 @@ $(function() {
         }
     });
 
-    //override Backbone.sync to include our HTTP basic authorization header while 
-    //preserving all existing functionality
-    // Map from CRUD to HTTP for our default `Backbone.sync` implementation.
-    var methodMap = {
-        'create': 'POST',
-        'update': 'PUT',
-        'patch': 'PATCH',
-        'delete': 'DELETE',
-        'read': 'GET'
-    };
-    Backbone.sync = function(method, model, options) {
-        var type = methodMap[method];
-
-        // Default options, unless specified.
-        _.defaults(options || (options = {}), {
-            emulateHTTP: Backbone.emulateHTTP,
-            emulateJSON: Backbone.emulateJSON
-        });
-
-        // Default JSON-request options.
-        var params = {
-            type: type,
-            contentType: 'application/json; charset=utf-8',
-            dataType: 'json',
-            headers: {
-                'Authorization': getAuthHash()
-            }
-        };
-
-        // Ensure that we have a URL.
-        if (!options.url) {
-            params.url = _.result(model, 'url') || urlError();
-        }
-
-        // Ensure that we have the appropriate request data.
-        if (options.data == null && model && (method === 'create' || method === 'update' || method === 'patch')) {
-            params.contentType = 'application/json';
-            params.data = JSON.stringify(options.attrs || model.toJSON(options));
-        }
-
-        // For older servers, emulate JSON by encoding the request into an HTML-form.
-        if (options.emulateJSON) {
-            params.contentType = 'application/x-www-form-urlencoded';
-            params.data = params.data ? {model: params.data} : {};
-        }
-
-        // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
-        // And an `X-HTTP-Method-Override` header.
-        if (options.emulateHTTP && (type === 'PUT' || type === 'DELETE' || type === 'PATCH')) {
-            params.type = 'POST';
-            if (options.emulateJSON) params.data._method = type;
-            var beforeSend = options.beforeSend;
-            options.beforeSend = function(xhr) {
-                xhr.setRequestHeader('X-HTTP-Method-Override', type);
-                if (beforeSend) return beforeSend.apply(this, arguments);
-            };
-        }
-
-        // Don't process data on a non-GET request.
-        if (params.type !== 'GET' && !options.emulateJSON) {
-            params.processData = false;
-        }
-
-        var success = options.success;
-        options.success = function(resp) {
-            if (success) success(model, resp, options);
-            model.trigger('sync', model, resp, options);
-        };
-
-        var error = options.error;
-        options.error = function(xhr) {
-            if (error) error(model, xhr, options);
-            model.trigger('error', model, xhr, options);
-        };
-
-        // Make the request, allowing the user to override any Ajax options.
-        var xhr = options.xhr = Backbone.ajax(_.extend(params, options));
-        model.trigger('request', model, xhr, options);
-        return xhr;
-    };
-
     //logical model of a user
     var User = Backbone.Model.extend({
-        initialize: function() {
-            this.username = null;
-            this.token = null;
-            this.expires = null;
-        },
 
         login: function(username, password) {
-            //temporarily set user creds
-            musik.currentUser.username = username;
-            musik.currentUser.token = password;
+            var self = this;
+            console.log('attempting to log in user with username=' + username + ', password=' + password);
 
-            //try to log in
-            Backbone.sync('update', this, {
-                url: '/api/currentuser',
-                success: function (data, textStatus, jqXHR) {
-                    $.each(data, function(key, value) {
-                        switch(key) {
-                            case 'name':
-                                this.username = value;
-                                break;
-                            case 'token':
-                                this.token = value;
-                                break;
-                            case 'token_expires':
-                                this.expires = value;
-                                break;
-                        }
-                    });
-
-                    //tell everybody else that the login succeeded
+            self.id = 0;
+            Backbone.BasicAuth.set(username, password);
+            this.save({'username': username, 'token': password}, {
+                url: 'api/currentuser',
+                success: function(model, response, options) {
+                    console.log('save success handler fired.');
+                    console.log(model.get('id'));
+                    console.log(model.get('username'));
+                    console.log(model.get('token'));
+                    Backbone.BasicAuth.set(model.get('username'), model.get('token'));
                     dispatcher.trigger('login');
                 },
-                error: function (data, textStatus, jqXHR) {
-                    this.username = '';
-                    this.token = '';
+                error: function(model, xhr, options) {
+                    console.log('login error.');
+                    self.clear();
+                    Backbone.BasicAuth.clear();
                     musik.loginView.showError();
                 }
             });
         },
 
         register: function(username, password) {
-            request = {'username': username,
-                       'password': password};
+            var self = this;
+            console.log('attempting to register user with username=' + username + ', password=' + password);
 
-            $.ajax({
-                type: 'POST',
+            //create the new account
+            this.save({'username': username, 'token': password}, {
                 url: '/api/users',
-                contentType: 'application/json; charset=utf-8',
-                data: JSON.stringify(request),
-                dataType: 'text',
-                success: function (data, textStatus, jqXHR) {
-                    $.each(data, function(key, value) {
-                        switch(key) {
-                            case 'name':
-                                this.username = value;
-                                break;
-                            case 'token':
-                                this.token = value;
-                                break;
-                            case 'token_expires':
-                                this.expires = value;
-                                break;
-                        }
-                    });
-
-                    //tell everybody else that the login succeeded
-                    dispatcher.trigger('login');
+                success: function (model, response, options) {
+                    console.log('successfully registered ' + username);
+                    console.log('id ' + model.get('id'));
+                    console.log('created ' + model.get('created'));
+                    self.login(username, password);
                 },
-                error: function (data, textStatus, jqXHR) {
+                error: function (model, xhr, options) {
+                    console.log('failed to register ' + username)
+                    self.clear();
                     musik.registerView.showError('Ah shit you broke it. Try again later.');
                 }
             });
         },
 
         logout: function() {
-            this.username = null;
-            this.token = null;
-            this.expires = null;
+            console.log('logging out');
+            this.clear();
             dispatcher.trigger('logout');
-        },
+        }
 
-        toJSON: function() {
-            return {'username': this.username,
-                    'token': this.token,
-                    'expires': this.expires};
+        clear: function() {
+            this.set({id: null, username: null, token: null, token_expires: null, created: null});
+            Backbone.BasicAuth.clear();
         }
     });
 
@@ -504,7 +394,7 @@ $(function() {
 
     //make important objects visible to the debug console
     musik = {}
-    musik['currentUser'] = new User()
+    musik['currentUser'] = new User();
     musik['loginView'] = new LoginView()
     musik['registerView'] = new RegisterView()
     musik['currentUserView'] = new CurrentUserView({model: musik.currentUser})

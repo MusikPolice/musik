@@ -20,7 +20,7 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    username = Column(String, nullable=False)
     passhash = Column(String, nullable=False)
     created = Column(DateTime, nullable=False)
     token = Column(String)
@@ -28,7 +28,7 @@ class User(Base):
 
     def __init__(self, username, password):
         """Creates a new user with the specified username and password"""
-        self.name = username
+        self.username = username
         self.passhash = self.password_hash(username, password)
         self.created = datetime.datetime.utcnow()
 
