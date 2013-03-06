@@ -156,7 +156,7 @@ $(function() {
         },
 
         showArtists: function() {
-            alert('artists');
+            musik.artistsView.render();
         },
 
         showAlbums: function() {
@@ -328,6 +328,23 @@ $(function() {
         },
     });
 
+    var ArtistsView = Backbone.View.extend({
+        el: $('.content'),
+
+        initialize: function() {
+            //remove the view on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                $('.content div.artists').remove();
+            });
+        },
+
+        render: function() {
+            this.el = ich.artists();
+            $('.content').html(this.el);
+            return this;
+        },
+    });
+
     //import media page
     var AddMediaView = Backbone.View.extend({
         el: $('.content'),
@@ -423,6 +440,7 @@ $(function() {
     musik['currentUserView'] = new CurrentUserView({model: musik.currentUser})
     musik['navigationView'] = new NavigationView();
     musik['nowPlayingView'] = new NowPlayingView();
+    musik['artistsView'] = new ArtistsView();
     musik['addMediaView'] = new AddMediaView();
 
     //display the login view
