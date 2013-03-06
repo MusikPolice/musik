@@ -58,6 +58,14 @@ class User(Base):
         del u['passhash']
         return u
 
+    def as_dict_safe(self):
+        """Returns a representation of the user as a dictionary that does not contain the
+        passhash, token, or token_expires fields."""
+        u = self.as_dict()
+        del u['token']
+        del u['token_expires']
+        return u
+
 
 class LogEntry(Base):
     """Error and warning messages are written to the database and to log files."""

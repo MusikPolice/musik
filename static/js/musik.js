@@ -49,6 +49,8 @@ $(function() {
             });
         },
 
+        //attempts to register a new user account with specified username and password
+        //on success, the new user will be automatically logged in
         register: function(username, password) {
             var self = this;
             console.log('attempting to register user with username=' + username + ', password=' + password);
@@ -74,12 +76,18 @@ $(function() {
             console.log('logging out');
             this.clear();
             dispatcher.trigger('logout');
-        }
+        },
 
         clear: function() {
             this.set({id: null, username: null, token: null, token_expires: null, created: null});
             Backbone.BasicAuth.clear();
         }
+    });
+
+    //a collection of user accounts
+    var UserAccounts = Backbone.Collection.extend({
+        model: User,
+        url: '/api/users'
     });
 
     //visual representation of a user
@@ -244,25 +252,37 @@ $(function() {
         submit: function() {
             console.log('register submit button pressed');
 
-            //make sure that the username is unique
-            $.ajax({
-                type: 'GET',
-                url: '/api/users',
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'text',
-                success: function (data, textStatus, jqXHR) {
-                    data = JSON.parse(data);
-                    for (var i = 0; i < data.length; i++) {
-                        var user = data[i];
-                        if ($('.register input#username').val() == user) {
-                            musik.registerView.showError('Pick a unique username, fool.');
-                            $('.register input#username').focus();
-                            return false;
+            var accounts = new UserAccounts();
+            accounts.fetch({
+                success: function(model, response, options) {
+                    console.log('Found ' + accounts.models.length + ' existing user accounts.');
+
+                    //make sure that the chosen username is unique
+                    var unique = true;
+                    _.each(accounts.models, function(element, index, list) { 
+                        if (element.get('username') == $('.register input#username').val()) {
+                            unique = false;
+                            return;
                         }
+                    });
+                    if (!unique) {
+                        console.log('Chosen username is not unique.');
+                        musik.registerView.showError('Pick a unique username, fool.');
+                        $('.register input#username').focus();
+                        return false;
+                    }
+
+                    //make sure that passwords have length
+                    if ($('input#password').val().length == 0 || $('input#password2').val().length == 0) {
+                        console.log('Empty password not allowed.');
+                        musik.registerView.showError('Dude, you gotta enter a password.');
+                        $('.register input#password').focus();
+                        return false;
                     }
 
                     //make sure that the passwords match
                     if ($('input#password').val() != $('input#password2').val()) {
+                        console.log('Chosen passwords do not match.');
                         musik.registerView.showError('Those passwords don\'t match, homie.');
                         $('.register input#password').focus();
                         return false;
@@ -271,7 +291,8 @@ $(function() {
                     //actually create the account
                     musik.currentUser.register($('input#username').val(), $('input#password').val());
                 },
-                error: function() {
+                error: function(model, xhr, options) {
+                    console.log('failed to fetch existing user accounts.');
                     musik.registerView.showError('Hmm, something is broken. Come back later.');
                 }
             });

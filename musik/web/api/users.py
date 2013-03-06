@@ -119,5 +119,5 @@ class UserAccounts():
         """Returns a list of registered usernames"""
         cherrypy.response.headers['Content-Type'] = 'application/json'
 
-        usernames = [u.username for u in cherrypy.request.db.query(User).all()]
-        return json.dumps(usernames)
+        users = [u.as_dict_safe() for u in cherrypy.request.db.query(User).all()]
+        return json.dumps(users, cls=DateTimeEncoder)
