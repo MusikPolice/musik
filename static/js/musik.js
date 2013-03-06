@@ -11,7 +11,7 @@ $(function() {
         return 'Basic ' + hash;
     }
 
-    //listen for ajax errors and throw a logout even when appropriate
+    //listen for ajax errors and throw a logout when appropriate
     $(document).ajaxError(function(e, xhr, options) {
         if (xhr.status == 403) {
             console.log('firing logout event');
