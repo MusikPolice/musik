@@ -22,6 +22,8 @@ $(function() {
     //logical model of a user
     var User = Backbone.Model.extend({
 
+        //attempts to log in with specified username and password
+        //on success, login event is thrown
         login: function(username, password) {
             var self = this;
             console.log('attempting to log in user with username=' + username + ', password=' + password);
