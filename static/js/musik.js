@@ -12,6 +12,27 @@ $(function() {
         }
     });
 
+    //logical model of an artist
+    var Artist = Backbone.Model.extend({
+        initialize: function() {
+            this.id = null;
+        },
+
+        url: function() {
+            if (this.id == null) {
+                return 'api/artists/';
+            } else {
+                return 'api/artists/id/' + id;
+            }
+        }
+    });
+
+    //a collection of artists
+    var ArtistsCollection = Backbone.Collection.extend({
+        model: Artist,
+        url: 'api/artists'
+    });
+
     //logical model of a user
     var User = Backbone.Model.extend({
 
@@ -75,134 +96,6 @@ $(function() {
     var UsersCollection = Backbone.Collection.extend({
         model: User,
         url: '/api/users'
-    });
-
-    //visual representation of a user
-    var CurrentUserView = Backbone.View.extend({
-        el: $('header'),
-
-        initialize: function() {
-            //show the view on login
-            this.listenTo(dispatcher, 'login', function() {
-                $('header').append(this.render().el);
-            });
-
-            //remove the view on logout
-            this.listenTo(dispatcher, 'logout', function() {
-                $('header .current-user').remove();
-            });
-        },
-
-        events: {
-            'click a#logout': 'logout'
-        },
-
-        render: function() {
-            this.el = ich.currentUser(this.model.toJSON());
-            return this;
-        },
-
-        logout: function() {
-            musik.currentUser.logout();
-        }
-    });
-
-    //the navigation menu
-    var NavigationView = Backbone.View.extend({
-        el: $('header'),
-
-        initialize: function() {
-            //show the view on login
-            this.listenTo(dispatcher, 'login', function() {
-                console.log('showing navigation view');
-                this.render();
-            });
-
-            //remove the view on logout
-            this.listenTo(dispatcher, 'logout', function() {
-                console.log('hiding navigation view');
-                $('header nav.navigation').remove();
-            });
-        },
-
-        events: {
-            'click .pages a.nowplaying-nav': 'showNowPlaying',
-            'click .pages a.artists-nav': 'showArtists',
-            'click .pages a.albums-nav': 'showAlbums',
-            'click .pages a.addmedia-nav': 'showAddMedia'
-        },
-
-        render: function() {
-            this.el = ich.navigation();
-            $('header').append(this.el);
-            return this;
-        },
-
-        showNowPlaying: function() {
-            musik.nowPlayingView.render();
-        },
-
-        showArtists: function() {
-            musik.artistsView.render();
-        },
-
-        showAlbums: function() {
-            alert('albums');
-        },
-
-        showAddMedia: function() {
-            musik.addMediaView.render();
-        }
-    });
-
-    //visual representation of the login form
-    var LoginView = Backbone.View.extend({
-        el: $('.content'),
-
-        initialize: function() {
-            //hide login form once login is complete...
-            this.listenTo(dispatcher, 'login', function() {
-                $('div.login').remove();
-            });
-            //...and show it again on logout
-            this.listenTo(dispatcher, 'logout', function() {
-                //only re-render the form if it isn't currently displayed
-                if ($('.content div').attr('class') != 'login') {
-                    this.render();
-                }
-            });
-        },
-
-        events: {
-            'click button.login': 'submit',
-            'click a.register': 'register'
-        },
-
-        render: function() {
-            console.log('showing login view');
-            this.el = ich.login();
-            $('.content').html(this.el);
-            $('.login .error').hide();
-            $('.login input#username').focus();
-            return this;
-        },
-
-        showError: function() {
-            console.log('showing error message');
-            $('.login input').val('');
-            $('.login input#username').focus();
-            $('.login .error').slideDown(400);
-        },
-
-        submit: function() {
-            console.log('log in submit button pressed');
-            musik.currentUser.login($('input#username').val(), $('input#password').val());
-            return false;
-        },
-
-        register: function() {
-            musik.registerView.render();
-        }
     });
 
     //registration form view
@@ -290,6 +183,134 @@ $(function() {
         login: function() {
             console.log('login link clicked');
             musik.loginView.render();
+        }
+    });
+
+    //visual representation of the login form
+    var LoginView = Backbone.View.extend({
+        el: $('.content'),
+
+        initialize: function() {
+            //hide login form once login is complete...
+            this.listenTo(dispatcher, 'login', function() {
+                $('div.login').remove();
+            });
+            //...and show it again on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                //only re-render the form if it isn't currently displayed
+                if ($('.content div').attr('class') != 'login') {
+                    this.render();
+                }
+            });
+        },
+
+        events: {
+            'click button.login': 'submit',
+            'click a.register': 'register'
+        },
+
+        render: function() {
+            console.log('showing login view');
+            this.el = ich.login();
+            $('.content').html(this.el);
+            $('.login .error').hide();
+            $('.login input#username').focus();
+            return this;
+        },
+
+        showError: function() {
+            console.log('showing error message');
+            $('.login input').val('');
+            $('.login input#username').focus();
+            $('.login .error').slideDown(400);
+        },
+
+        submit: function() {
+            console.log('log in submit button pressed');
+            musik.currentUser.login($('input#username').val(), $('input#password').val());
+            return false;
+        },
+
+        register: function() {
+            musik.registerView.render();
+        }
+    });
+
+    //visual representation of a user
+    var CurrentUserView = Backbone.View.extend({
+        el: $('header'),
+
+        initialize: function() {
+            //show the view on login
+            this.listenTo(dispatcher, 'login', function() {
+                $('header').append(this.render().el);
+            });
+
+            //remove the view on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                $('header .current-user').remove();
+            });
+        },
+
+        events: {
+            'click a#logout': 'logout'
+        },
+
+        render: function() {
+            this.el = ich.currentUser(this.model.toJSON());
+            return this;
+        },
+
+        logout: function() {
+            musik.currentUser.logout();
+        }
+    });
+
+    //the navigation menu
+    var NavigationView = Backbone.View.extend({
+        el: $('header'),
+
+        initialize: function() {
+            //show the view on login
+            this.listenTo(dispatcher, 'login', function() {
+                console.log('showing navigation view');
+                this.render();
+            });
+
+            //remove the view on logout
+            this.listenTo(dispatcher, 'logout', function() {
+                console.log('hiding navigation view');
+                $('header nav.navigation').remove();
+            });
+        },
+
+        events: {
+            'click .pages a.nowplaying-nav': 'showNowPlaying',
+            'click .pages a.artists-nav': 'showArtists',
+            'click .pages a.albums-nav': 'showAlbums',
+            'click .pages a.addmedia-nav': 'showAddMedia'
+        },
+
+        render: function() {
+            this.el = ich.navigation();
+            $('header').append(this.el);
+            return this;
+        },
+
+        showNowPlaying: function() {
+            musik.nowPlayingView.render();
+        },
+
+        showArtists: function() {
+            musik.artistsView.render();
+        },
+
+        showAlbums: function() {
+            alert('albums');
+        },
+
+        showAddMedia: function() {
+            musik.addMediaView.render();
         }
     });
 
