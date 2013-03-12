@@ -4,13 +4,6 @@ $(function() {
     //event dispatcher
     var dispatcher = _.clone(Backbone.Events);
 
-    //returns the contents of the HTTP Authorization header
-    function getAuthHash() {
-        var token = musik.currentUser.username + ':' + musik.currentUser.token;
-        var hash = btoa(token);
-        return 'Basic ' + hash;
-    }
-
     //listen for ajax errors and throw a logout when appropriate
     $(document).ajaxError(function(e, xhr, options) {
         if (xhr.status == 403) {
@@ -33,17 +26,13 @@ $(function() {
             this.save({'username': username, 'token': password}, {
                 url: 'api/currentuser',
                 success: function(model, response, options) {
-                    console.log('save success handler fired.');
-                    console.log(model.get('id'));
-                    console.log(model.get('username'));
-                    console.log(model.get('token'));
+                    console.log('login success');
                     Backbone.BasicAuth.set(model.get('username'), model.get('token'));
                     dispatcher.trigger('login');
                 },
                 error: function(model, xhr, options) {
                     console.log('login error.');
                     self.clear();
-                    Backbone.BasicAuth.clear();
                     musik.loginView.showError();
                 }
             });
@@ -60,8 +49,6 @@ $(function() {
                 url: '/api/users',
                 success: function (model, response, options) {
                     console.log('successfully registered ' + username);
-                    console.log('id ' + model.get('id'));
-                    console.log('created ' + model.get('created'));
                     self.login(username, password);
                 },
                 error: function (model, xhr, options) {
@@ -85,7 +72,7 @@ $(function() {
     });
 
     //a collection of user accounts
-    var UserAccounts = Backbone.Collection.extend({
+    var UsersCollection = Backbone.Collection.extend({
         model: User,
         url: '/api/users'
     });
@@ -252,7 +239,7 @@ $(function() {
         submit: function() {
             console.log('register submit button pressed');
 
-            var accounts = new UserAccounts();
+            var accounts = new UsersCollection();
             accounts.fetch({
                 success: function(model, response, options) {
                     console.log('Found ' + accounts.models.length + ' existing user accounts.');
@@ -387,6 +374,7 @@ $(function() {
                 return false;
             }
 
+            //TODO: replace this with a sync call
             $.ajax({
                 type: 'POST',
                 url: '/api/importer/',
@@ -395,7 +383,7 @@ $(function() {
                     path: p
                 }),
                 headers: {
-                    'Authorization': getAuthHash()
+                    'Authorization': 'Basic ' + musik.currentUser.get('authtoken')
                 },
                 dataType: 'text',
                 success: function() {
