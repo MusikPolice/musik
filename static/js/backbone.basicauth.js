@@ -9,8 +9,6 @@
   var _ = window._;
   var Backbone = window.Backbone;
   var btoa = window.btoa;
-  
-  var token;
 
   var encode = function(username, password) {
     // Use Base64 encoding to create the authentication details
@@ -25,20 +23,21 @@
   Backbone.BasicAuth = {
     // Setup Basic Authentication for all future requests
     set: function(username, password) {
-      token = encode(username, password);
-
+      //save authtoken in the global user object so we don't lose it due to scope issues
+      musik.currentUser.set('authtoken', encode(username, password));
+      
       // Override Backbone.sync for all future requests,
       // setting the Basic Auth header before the sync is performed.
       Backbone.sync = function(method, model, options) {
         options.headers = options.headers || {};
-        _.extend(options.headers, { 'Authorization': 'Basic ' + token });
+        _.extend(options.headers, { 'Authorization': 'Basic ' + musik.currentUser.get('authtoken') });
         return originalSync.call(model, method, model, options);
       };
     },
 
     // Clear Basic Authentication for all future requests
     clear: function() {
-      token = null;
+      musik.currentUser.set('authtoken', null);
       Backbone.sync = originalSync;
     }
   };
