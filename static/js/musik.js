@@ -302,7 +302,8 @@ $(function() {
         },
 
         showArtists: function() {
-            musik.artistsView.render();
+            //pull an updated list of artists - triggers a render of artists page
+            musik.artists.fetch();
         },
 
         showAlbums: function() {
@@ -344,11 +345,17 @@ $(function() {
             this.listenTo(dispatcher, 'logout', function() {
                 $('.content div.artists').remove();
             });
+
+            //render the view whenever the artists collection is changed
+            this.listenTo(musik.artists, 'sync', this.render);
         },
 
         render: function() {
-            this.el = ich.artists();
-            $('.content').html(this.el);
+            var html = $(ich.artists());
+            _.forEach(musik.artists.models, function(element, index, list) {
+                html.children('ul').append(ich.artist(element.attributes));
+            });
+            this.$el.html(html);
             return this;
         },
     });
@@ -442,8 +449,11 @@ $(function() {
     });
 
     //make important objects visible to the debug console
+    //TODO: some of these should only be available after a successful login
     musik = {}
     musik['currentUser'] = new User();
+    musik['artists'] = new ArtistsCollection();
+
     musik['loginView'] = new LoginView()
     musik['registerView'] = new RegisterView()
     musik['currentUserView'] = new CurrentUserView({model: musik.currentUser})

@@ -156,6 +156,26 @@ header ul.current-user li {
   width: 120px;
 }
 
+.content .artists li.artist {
+  margin-top: 20px;
+  overflow: auto;
+  width: 100%;
+}
+.content .artists li.artist div {
+  float: left;
+}
+.content .artists li.artist div.album-details {
+  margin-left: 20px;
+  width: 400px;
+}
+
+.content .image-120x120 {
+  background-color: gray;
+  border: 1px solid black;
+  height: 120px;
+  width: 120px;
+}
+
 .content .success {
   background-color: #04B200;
   color: #FFFFFF;

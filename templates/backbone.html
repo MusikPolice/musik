@@ -13,7 +13,7 @@
         <script type="application/javascript" src="/static/js/underscore-min.js"></script>
         <script type="application/javascript" src="/static/js/json2.js"></script>
         <script type="application/javascript" src="/static/js/ICanHaz.min.js"></script>
-        <script type="application/javascript" src="/static/js/backbone.js-0.9.9-min.js"></script>
+        <script type="application/javascript" src="/static/js/backbone.js-0.9.10.js"></script>
         <script type="application/javascript" src="/static/js/backbone.basicauth.js"></script>
         <script type="application/javascript" src="/static/js/musik.js"></script>
     </head>
@@ -117,7 +117,19 @@
                 <div class="artists">
                     <h2>ARTISTS</h2>
                     <p>This page will show a list of the artists in your library</p>
+                    <ul></ul>
                 </div>
+            </script>
+
+            <script id="artist" type="text/html">
+                <li class="artist">
+                    <div class="image-120x120">&nbsp;</div>
+                        <div class="album-details">
+                            <a href='#' class='{{ id }}'><h3>{{ name }}</h3></a>
+                            <p class="musicbrainz_id">{{ musicbrainz_artistid }}</p>
+                        </div>
+                    </div>
+                </li>
             </script>
 
             <script id="addmedia" type="text/html">
