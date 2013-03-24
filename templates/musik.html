@@ -8,144 +8,151 @@
 
         <link rel="stylesheet" href="/static/styles/reset.css" />
         <link rel="stylesheet" href="/static/styles/musik.css" />
-
-        <script type="application/javascript" src="/static/js/musik.js"></script>
     </head>
     <body>
-        <div class='wrapper'>
-            <header>
-                <h1>Musik <small>The world's finest music player</small></h1>
-            </header>
+        <script type="text/x-handlebars" data-template-name="index">
+            <div class='wrapper'>
+                <header>
+                    <h1>Musik <small>The world&#39;s finest music player</small></h1>
+                </header>
 
-            <div class='content'>
-                <p>This is where the content goes</p>
+                <div class='content'>
+                    <p>This is where the content goes</p>
+                </div>
+
+                <footer>
+                    <p>&copy; <a href="http://github.com/MusikPolice/musik/" class="muted">MusikPolice</a> 2012</p>
+                </footer>
             </div>
+        </script>
 
-            <footer>
-                <p>&copy; <a href="http://github.com/MusikPolice/musik/" class="muted">MusikPolice</a> 2012</p>
-            </footer>
 
-            <!--ICanHaz Templates -->
-            <script id="currentUser" type="text/html">
-                <ul class="current-user">
-                    <li><a href='#'>{{ username }}</a></li>
-                    <li><a href='#' id="logout">logout</a></li>
+        <!--ICanHaz Templates -->
+        <!-- TODO: these need to be turned into Moustache templates -->
+        <script id="currentUser" type="text/html">
+            <ul class="current-user">
+                <li><a href='#'>{{ username }}</a></li>
+                <li><a href='#' id="logout">logout</a></li>
+            </ul>
+        </script>
+
+        <script id="navigation" type="text/html">
+            <nav class="navigation">
+                <ul class="pages">
+                    <li><a href="javascript:void(0);" class="nowplaying-nav">Now Playing</a></li>
+                    <li><a href="javascript:void(0);" class="artists-nav">Artists</a></li>
+                    <li><a href="javascript:void(0);" class="albums-nav">Albums</a></li>
+                    <li><a href="javascript:void(0);" class="addmedia-nav">Add Media</a></li>
+                    <li><a href="javascript:void(0);" class="search-nav">Search</a></li>
                 </ul>
-            </script>
 
-            <script id="navigation" type="text/html">
-                <nav class="navigation">
-                    <ul class="pages">
-                        <li><a href="javascript:void(0);" class="nowplaying-nav">Now Playing</a></li>
-                        <li><a href="javascript:void(0);" class="artists-nav">Artists</a></li>
-                        <li><a href="javascript:void(0);" class="albums-nav">Albums</a></li>
-                        <li><a href="javascript:void(0);" class="addmedia-nav">Add Media</a></li>
-                        <li><a href="javascript:void(0);" class="search-nav">Search</a></li>
-                    </ul>
+                <ul class="player-controls">
+                    <li><a href="javascript:void(0);" class="playpause">Play</a></li>
+                    <li><a href="javascript:void(0);" class="skip">Skip</a></li>
+                </ul>
+            </nav>
+        </script>
 
-                    <ul class="player-controls">
-                        <li><a href="javascript:void(0);" class="playpause">Play</a></li>
-                        <li><a href="javascript:void(0);" class="skip">Skip</a></li>
-                    </ul>
-                </nav>
-            </script>
-
-            <script id="login" type="text/html">
-                <div class='login'>
-                    <h2>FAILBOATS AWAY!</h2>
-                    <p>You&#39;ll need to log in to listen to your tunes.</p>
-                    <div class='error' style='display:none;'>
-                        <p>Wrong username or password.<br /> Try again, Chief.</p>
-                    </div>
-                    <form>
-                        <div>
-                            <label for="username">Username:</label>
-                            <input id="username" name="username" type="text">
-                        </div>
-                        <div>
-                            <label for="password">Password:</label>
-                            <input id="password" name="password" type="password">
-                        </div>
-
-                        <button type="submit" class="login">Login</button>
-                    </form>
-                    <p>If you don&#39;t have an account, <a class='register' href='javascript:void(0);'>register now</a>.</p>
+        <script id="login" type="text/html">
+            <div class='login'>
+                <h2>FAILBOATS AWAY!</h2>
+                <p>You&#39;ll need to log in to listen to your tunes.</p>
+                <div class='error' style='display:none;'>
+                    <p>Wrong username or password.<br /> Try again, Chief.</p>
                 </div>
-            </script>
-
-            <script id="register" type="text/html">
-                <div class='register'>
-                    <h2>CREATE A NEW ACCOUNT</h2>
-                    <p>Enter your credentials below.</p>
-                    <div class='error' style='display:none;'>
-                        <p>Something Broke!</p>
+                <form>
+                    <div>
+                        <label for="username">Username:</label>
+                        <input id="username" name="username" type="text">
                     </div>
-                    <form>
-                        <div>
-                            <label for="username">Username:</label>
-                            <input id="username" name="username" type="text">
-                        </div>
-                        <div>
-                            <label for="password">Password:</label>
-                            <input id="password" name="password" type="password">
-                        </div>
-                        <div>
-                            <label for="password2">Retype Password:</label>
-                            <input id="password2" name="password2" type="password">
-                        </div>
-
-                        <button type="submit" class="register">Create</button>
-                    </form>
-                    <p>If you already have an account, <a class='login' href='javascript:void(0);'>login</a>.</p>
-                </div>
-            </script>
-
-            <script id="nowplaying" type="text/html">
-                <div class='nowplaying'>
-                    <h2>NOW PLAYING</h2>
-                    <p>Eventually, this view will show the queue and the currently playing track with large obnoxious artwork.</p>
-                </div>
-            </script>
-
-            <script id="artistsListView" type="text/html">
-                <div class="artists">
-                    <h2>ARTISTS</h2>
-                    <p>This page will show a list of the artists in your library</p>
-                    <ul class='artists'></ul>
-                </div>
-            </script>
-
-            <script id="artistListElementView" type="text/html">
-                <li class="artist">
-                    <div class="image-120x120">&nbsp;</div>
-                        <div class="album-details">
-                            <a href='#' class='{{ id }}'><h3>{{ name }}</h3></a>
-                            <p class="musicbrainz_id">{{ musicbrainz_artistid }}</p>
-                        </div>
+                    <div>
+                        <label for="password">Password:</label>
+                        <input id="password" name="password" type="password">
                     </div>
-                </li>
-            </script>
 
-            <script id="addmedia" type="text/html">
-                <div class="addmedia">
-                    <h2>IMPORT MEDIA</h2>
-                    <p>Need to add some music to your library? This is the place to do it.</p>
-                    <div class='success' style='display:none;'>
-                        <p>Hooray!</p>
-                    </div>
-                    <div class='error' style='display:none;'>
-                        <p>Something Broke!</p>
-                    </div>
-                    <form id="importmedia">
-                        <div>
-                            <label for="path">Path:</label>
-                            <input id="path" name="path" type="text">
-                            <input type="button" class="browse" value="Browse">
-                        </div>
-                        <button type="submit" class="addmedia">Import Music</button>
-                    </form>
+                    <button type="submit" class="login">Login</button>
+                </form>
+                <p>If you don&#39;t have an account, <a class='register' href='javascript:void(0);'>register now</a>.</p>
+            </div>
+        </script>
+
+        <script id="register" type="text/html">
+            <div class='register'>
+                <h2>CREATE A NEW ACCOUNT</h2>
+                <p>Enter your credentials below.</p>
+                <div class='error' style='display:none;'>
+                    <p>Something Broke!</p>
                 </div>
-            </script>
-        </div>
+                <form>
+                    <div>
+                        <label for="username">Username:</label>
+                        <input id="username" name="username" type="text">
+                    </div>
+                    <div>
+                        <label for="password">Password:</label>
+                        <input id="password" name="password" type="password">
+                    </div>
+                    <div>
+                        <label for="password2">Retype Password:</label>
+                        <input id="password2" name="password2" type="password">
+                    </div>
+
+                    <button type="submit" class="register">Create</button>
+                </form>
+                <p>If you already have an account, <a class='login' href='javascript:void(0);'>login</a>.</p>
+            </div>
+        </script>
+
+        <script id="nowplaying" type="text/html">
+            <div class='nowplaying'>
+                <h2>NOW PLAYING</h2>
+                <p>Eventually, this view will show the queue and the currently playing track with large obnoxious artwork.</p>
+            </div>
+        </script>
+
+        <script id="artistsListView" type="text/html">
+            <div class="artists">
+                <h2>ARTISTS</h2>
+                <p>This page will show a list of the artists in your library</p>
+                <ul class='artists'></ul>
+            </div>
+        </script>
+
+        <script id="artistListElementView" type="text/html">
+            <li class="artist">
+                <div class="image-120x120">&nbsp;</div>
+                    <div class="album-details">
+                        <a href='#' class='{{ id }}'><h3>{{ name }}</h3></a>
+                        <p class="musicbrainz_id">{{ musicbrainz_artistid }}</p>
+                    </div>
+                </div>
+            </li>
+        </script>
+
+        <script id="addmedia" type="text/html">
+            <div class="addmedia">
+                <h2>IMPORT MEDIA</h2>
+                <p>Need to add some music to your library? This is the place to do it.</p>
+                <div class='success' style='display:none;'>
+                    <p>Hooray!</p>
+                </div>
+                <div class='error' style='display:none;'>
+                    <p>Something Broke!</p>
+                </div>
+                <form id="importmedia">
+                    <div>
+                        <label for="path">Path:</label>
+                        <input id="path" name="path" type="text">
+                        <input type="button" class="browse" value="Browse">
+                    </div>
+                    <button type="submit" class="addmedia">Import Music</button>
+                </form>
+            </div>
+        </script>
+
+        <script src="static/js/libs/jquery-1.9.1.js"></script>
+        <script src="static/js/libs/handlebars-1.0.0-rc.3.js"></script>
+        <script src="static/js/libs/ember-1.0.0-rc.1.js"></script>
+        <script src="static/js/app.js"></script>
     </body>
 </html>
