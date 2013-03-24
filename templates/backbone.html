@@ -9,12 +9,18 @@
         <link rel="stylesheet" href="/static/styles/reset.css" />
         <link rel="stylesheet" href="/static/styles/backbone.css" />
 
+        <!-- dependencies -->
         <script type="application/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
         <script type="application/javascript" src="/static/js/underscore-min.js"></script>
         <script type="application/javascript" src="/static/js/json2.js"></script>
         <script type="application/javascript" src="/static/js/ICanHaz.min.js"></script>
         <script type="application/javascript" src="/static/js/backbone.js-0.9.10.js"></script>
         <script type="application/javascript" src="/static/js/backbone.basicauth.js"></script>
+
+        <!-- application libraries -->
+        <script type="application/javascript" src="/static/js/musik.updatingcollectionview.js"></script>
+        <script type="application/javascript" src="/static/js/musik.artistlistelementview.js"></script>
+        <script type="application/javascript" src="/static/js/musik.artistslistview.js"></script>
         <script type="application/javascript" src="/static/js/musik.js"></script>
     </head>
     <body>
@@ -113,15 +119,15 @@
                 </div>
             </script>
 
-            <script id="artists" type="text/html">
+            <script id="artistsListView" type="text/html">
                 <div class="artists">
                     <h2>ARTISTS</h2>
                     <p>This page will show a list of the artists in your library</p>
-                    <ul></ul>
+                    <ul class='artists'></ul>
                 </div>
             </script>
 
-            <script id="artist" type="text/html">
+            <script id="artistListElementView" type="text/html">
                 <li class="artist">
                     <div class="image-120x120">&nbsp;</div>
                         <div class="album-details">

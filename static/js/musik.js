@@ -1,9 +1,9 @@
 var musik;
 
-$(function() {
-    //event dispatcher
-    var dispatcher = _.clone(Backbone.Events);
+//event dispatcher
+var dispatcher = _.clone(Backbone.Events);
 
+$(function() {
     //listen for ajax errors and throw a logout when appropriate
     $(document).ajaxError(function(e, xhr, options) {
         if (xhr.status == 403) {
@@ -226,7 +226,7 @@ $(function() {
         },
 
         submit: function() {
-            console.log('log in submit button pressed');
+            console.log('var dispatcher = _.clone(Backbone.Events);log in submit button pressed');
             musik.currentUser.login($('input#username').val(), $('input#password').val());
             return false;
         },
@@ -303,6 +303,8 @@ $(function() {
 
         showArtists: function() {
             //pull an updated list of artists - triggers a render of artists page
+            var artistsListView = new ArtistsListView({collection: musik.artists});
+            artistsListView.render();
             musik.artists.fetch();
         },
 
@@ -333,29 +335,6 @@ $(function() {
         render: function() {
             this.el = ich.nowplaying();
             $('.content').html(this.el);
-            return this;
-        },
-    });
-
-    var ArtistsView = Backbone.View.extend({
-        el: $('.content'),
-
-        initialize: function() {
-            //remove the view on logout
-            this.listenTo(dispatcher, 'logout', function() {
-                $('.content div.artists').remove();
-            });
-
-            //render the view whenever the artists collection is changed
-            this.listenTo(musik.artists, 'sync', this.render);
-        },
-
-        render: function() {
-            var html = $(ich.artists());
-            _.forEach(musik.artists.models, function(element, index, list) {
-                html.children('ul').append(ich.artist(element.attributes));
-            });
-            this.$el.html(html);
             return this;
         },
     });
@@ -459,7 +438,6 @@ $(function() {
     musik['currentUserView'] = new CurrentUserView({model: musik.currentUser})
     musik['navigationView'] = new NavigationView();
     musik['nowPlayingView'] = new NowPlayingView();
-    musik['artistsView'] = new ArtistsView();
     musik['addMediaView'] = new AddMediaView();
 
     //display the login view
