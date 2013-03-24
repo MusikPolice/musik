@@ -2,7 +2,6 @@ import musik
 import musik.config
 from musik.web import api
 from musik.web import application
-from musik.web import backbone
 from musik import log
 from musik.db import DatabaseWrapper
 
@@ -110,7 +109,7 @@ class WebService(object):
             }
         }
 
-        cherrypy.tree.mount(backbone.Musik(), '/', config=app_config)
+        cherrypy.tree.mount(application.Musik(), '/', config=app_config)
         cherrypy.tree.mount(api.API(), '/api', config=api_config)
 
     # a blocking call that starts the web application listening for requests
