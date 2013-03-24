@@ -14,10 +14,33 @@
             <div class='wrapper'>
                 <header>
                     <h1>Musik <small>The world&#39;s finest music player</small></h1>
+
+                    <ul class="current-user">
+                        {{#if user}}
+                            <li><a href='#'>{{ user.username }}</a></li>
+                            <li><a href='#' id="logout">logout</a></li>
+                        {{else}}
+                            <li><a href='#'>Please log in</li>
+                        {{/if}}
+                    </ul>
+
+                    <nav class="navigation">
+                        <ul class="pages">
+                            {{#each item in nav-pages}}
+                            <li><a href="javascript:void(0);">{{item}}</a></li>
+                            {{/each}}
+                        </ul>
+
+                        <ul class="player-controls">
+                            {{#each item in player-controls}}
+                            <li><a href="javascript:void(0);">{{item}}</a></li>
+                            {{/each}}
+                        </ul>
+                    </nav>
                 </header>
 
                 <div class='content'>
-                    <p>This is where the content goes</p>
+                    {{outlet}}
                 </div>
 
                 <footer>
@@ -29,30 +52,6 @@
 
         <!--ICanHaz Templates -->
         <!-- TODO: these need to be turned into Moustache templates -->
-        <script id="currentUser" type="text/html">
-            <ul class="current-user">
-                <li><a href='#'>{{ username }}</a></li>
-                <li><a href='#' id="logout">logout</a></li>
-            </ul>
-        </script>
-
-        <script id="navigation" type="text/html">
-            <nav class="navigation">
-                <ul class="pages">
-                    <li><a href="javascript:void(0);" class="nowplaying-nav">Now Playing</a></li>
-                    <li><a href="javascript:void(0);" class="artists-nav">Artists</a></li>
-                    <li><a href="javascript:void(0);" class="albums-nav">Albums</a></li>
-                    <li><a href="javascript:void(0);" class="addmedia-nav">Add Media</a></li>
-                    <li><a href="javascript:void(0);" class="search-nav">Search</a></li>
-                </ul>
-
-                <ul class="player-controls">
-                    <li><a href="javascript:void(0);" class="playpause">Play</a></li>
-                    <li><a href="javascript:void(0);" class="skip">Skip</a></li>
-                </ul>
-            </nav>
-        </script>
-
         <script id="login" type="text/html">
             <div class='login'>
                 <h2>FAILBOATS AWAY!</h2>
