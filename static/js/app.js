@@ -1,11 +1,24 @@
+//creates the application
 App = Ember.Application.create({
     LOG_TRANSITIONS: true
 });
 
-App.IndexRoute = Ember.Route.extend({
-  setupController: function(controller) {
-    controller.set('nav-pages', ['Now Playing', 'Artists', 'Albums', 'Add Media', 'Search']);
-    controller.set('player-controls', ['Play', 'Skip']);
-    controller.set('user', {username: 'jfritz'});
-  }
+//allows for pretty urls and back/forward button use
+App.Router.reopen({
+    location: 'history'
+});
+
+//sets up the main application controller
+App.ApplicationController = Ember.Controller.extend({
+    user: null
+});
+
+//maps urls for application pages
+App.Router.map(function() {
+    this.route('register');
+    this.route('login');
+    this.route('nowplaying')
+    this.route('artists');
+    this.route('albums');
+    this.route('addmedia');
 });

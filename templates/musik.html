@@ -10,31 +10,34 @@
         <link rel="stylesheet" href="/static/styles/musik.css" />
     </head>
     <body>
-        <script type="text/x-handlebars" data-template-name="index">
+
+        <!-- Main Application template. All other templates will be rendered inside of this one -->
+        <script type="text/x-handlebars">
             <div class='wrapper'>
                 <header>
-                    <h1>Musik <small>The world&#39;s finest music player</small></h1>
+                    <h1>MUSIK <small>The world&#39;s finest music player</small></h1>
 
                     <ul class="current-user">
                         {{#if user}}
                             <li><a href='#'>{{ user.username }}</a></li>
                             <li><a href='#' id="logout">logout</a></li>
                         {{else}}
-                            <li><a href='#'>Please log in</li>
+                            <li>{{#linkTo login}}Please log in{{/linkTo}}</li>
                         {{/if}}
                     </ul>
 
                     <nav class="navigation">
                         <ul class="pages">
-                            {{#each item in nav-pages}}
-                            <li><a href="javascript:void(0);">{{item}}</a></li>
-                            {{/each}}
+                            <li>{{#linkTo nowplaying}}Now Playing{{/linkTo}}</li>
+                            <li>{{#linkTo artists}}Artists{{/linkTo}}</li>
+                            <li>{{#linkTo albums}}Albums{{/linkTo}}</li>
+                            <li>{{#linkTo addmedia}}Add Media{{/linkTo}}</li>
+                            <li><a href='#'>Search</a></li>
                         </ul>
 
                         <ul class="player-controls">
-                            {{#each item in player-controls}}
-                            <li><a href="javascript:void(0);">{{item}}</a></li>
-                            {{/each}}
+                            <li><a href='#'>Play</a></li>
+                            <li><a href='#'>Skip</a></li>
                         </ul>
                     </nav>
                 </header>
@@ -49,39 +52,19 @@
             </div>
         </script>
 
-
-        <!--ICanHaz Templates -->
-        <!-- TODO: these need to be turned into Moustache templates -->
-        <script id="login" type="text/html">
-            <div class='login'>
-                <h2>FAILBOATS AWAY!</h2>
-                <p>You&#39;ll need to log in to listen to your tunes.</p>
-                <div class='error' style='display:none;'>
-                    <p>Wrong username or password.<br /> Try again, Chief.</p>
-                </div>
-                <form>
-                    <div>
-                        <label for="username">Username:</label>
-                        <input id="username" name="username" type="text">
-                    </div>
-                    <div>
-                        <label for="password">Password:</label>
-                        <input id="password" name="password" type="password">
-                    </div>
-
-                    <button type="submit" class="login">Login</button>
-                </form>
-                <p>If you don&#39;t have an account, <a class='register' href='javascript:void(0);'>register now</a>.</p>
-            </div>
-        </script>
-
-        <script id="register" type="text/html">
+        <!-- User Registration template -->
+        <script type="text/x-handlebars" data-template-name="register">
             <div class='register'>
                 <h2>CREATE A NEW ACCOUNT</h2>
-                <p>Enter your credentials below.</p>
-                <div class='error' style='display:none;'>
-                    <p>Something Broke!</p>
+                
+                {{#if error}}
+                <div class='error'>
+                    <p>{{error.message}}</p>
                 </div>
+                {{else}}
+                <p>Enter your credentials below.</p>
+                {{/if}}
+                
                 <form>
                     <div>
                         <label for="username">Username:</label>
@@ -98,18 +81,49 @@
 
                     <button type="submit" class="register">Create</button>
                 </form>
-                <p>If you already have an account, <a class='login' href='javascript:void(0);'>login</a>.</p>
+                <p>If you already have an account, {{#linkTo login}}log in{{/linkTo}}.</p>
             </div>
         </script>
 
-        <script id="nowplaying" type="text/html">
+        <!-- Login Template -->
+        <script type="text/x-handlebars" data-template-name="login">
+            <div class='login'>
+                {{#if error}}
+                <h2>FAILBOATS AWAY!</h2>
+                <div class='error'>
+                    <p>{{error.message}}</p>
+                </div>
+                {{else}}
+                <h2>LOGIN TO LISTEN</h2>
+                <p>You&#39;ll need to log in to listen to your tunes.</p>
+                {{/if}}
+
+                <form>
+                    <div>
+                        <label for="username">Username:</label>
+                        <input id="username" name="username" type="text">
+                    </div>
+                    <div>
+                        <label for="password">Password:</label>
+                        <input id="password" name="password" type="password">
+                    </div>
+
+                    <button type="submit" class="login">Login</button>
+                </form>
+                <p>If you don&#39;t have an account, {{#linkTo register}}register now{{/linkTo}}.</p>
+            </div>
+        </script>
+
+        <!-- Now Playing page - the currently playing song and queue -->
+        <script type="text/x-handlebars" data-template-name="nowplaying">
             <div class='nowplaying'>
                 <h2>NOW PLAYING</h2>
                 <p>Eventually, this view will show the queue and the currently playing track with large obnoxious artwork.</p>
             </div>
         </script>
 
-        <script id="artistsListView" type="text/html">
+        <!-- Artists - shows a list of artists in your library -->
+        <script type="text/x-handlebars" data-template-name="artists">
             <div class="artists">
                 <h2>ARTISTS</h2>
                 <p>This page will show a list of the artists in your library</p>
@@ -117,27 +131,33 @@
             </div>
         </script>
 
-        <script id="artistListElementView" type="text/html">
-            <li class="artist">
-                <div class="image-120x120">&nbsp;</div>
-                    <div class="album-details">
-                        <a href='#' class='{{ id }}'><h3>{{ name }}</h3></a>
-                        <p class="musicbrainz_id">{{ musicbrainz_artistid }}</p>
-                    </div>
-                </div>
-            </li>
+        <!-- Albums - shows a list of albums in your library -->
+        <script type="text/x-handlebars" data-template-name="albums">
+            <div class="albums">
+                <h2>ALBUMS</h2>
+                <p>This page will show a list of the albums in your library</p>
+                <ul class='albums'></ul>
+            </div>
         </script>
 
-        <script id="addmedia" type="text/html">
+        <!-- Add Media - allows you to add media to your library -->
+        <script type="text/x-handlebars" data-template-name="addmedia">
             <div class="addmedia">
                 <h2>IMPORT MEDIA</h2>
                 <p>Need to add some music to your library? This is the place to do it.</p>
-                <div class='success' style='display:none;'>
+
+                {{#if error}}
+                <div class='error'>
+                    <p>{{error.message}}</p>
+                </div>
+                {{/if}}
+
+                {{#if success}}
+                <div class='success'>
                     <p>Hooray!</p>
                 </div>
-                <div class='error' style='display:none;'>
-                    <p>Something Broke!</p>
-                </div>
+                {{/if}}
+
                 <form id="importmedia">
                     <div>
                         <label for="path">Path:</label>
