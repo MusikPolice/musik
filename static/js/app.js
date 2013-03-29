@@ -22,3 +22,31 @@ App.Router.map(function() {
     this.route('albums');
     this.route('addmedia');
 });
+
+//an artist object that can fetch artists from the server
+App.Artist = Ember.Object.extend({});
+App.Artist.reopenClass({
+  allArtists: [],
+  all: function() {
+    var self = this;
+    this.allArtists = [];
+    $.ajax({
+      url: '/api/artists',
+      dataType: 'json',
+      context: this,
+      success: function(response) {
+        $.each(response, function(i, item) {
+          self.allArtists.addObject(App.Artist.create(response[i]));
+        })
+      }
+    });
+    return this.allArtists;
+  }
+});
+
+//links artist object to the /artist route
+App.ArtistsRoute = Ember.Route.extend({
+  model: function() {
+    return App.Artist.all();
+  }
+});

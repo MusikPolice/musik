@@ -127,7 +127,11 @@
             <div class="artists">
                 <h2>ARTISTS</h2>
                 <p>This page will show a list of the artists in your library</p>
-                <ul class='artists'></ul>
+                <ul class='artists'>
+                {{#each artist in controller}}
+                    <li>{{artist.name}}</li>
+                {{/each}}
+                </ul>
             </div>
         </script>
 

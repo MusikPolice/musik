@@ -99,7 +99,9 @@ class WebService(object):
                 'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
 
                 # all api calls require that the client passes HTTP basic authentication
-                'tools.authorize.on': True,
+                # TODO: this has been temporarily disabled until we get HTTP basic auth
+                #       working on the client side with ember.
+                'tools.authorize.on': False,
             },
 
             '/users':
