@@ -127,9 +127,19 @@
             <div class="artists">
                 <h2>ARTISTS</h2>
                 <p>This page will show a list of the artists in your library</p>
-                <ul class='artists'>
+                <ul>
                 {{#each artist in controller}}
-                    <li>{{artist.name}}</li>
+                    <li class='artist'>
+                        <div class="image-120x120">&nbsp;</div>
+                        <div class="album-details">
+                            <a href='#'><h3>{{artist.name}}</h3></a>
+                            <ul>
+                                <li>5 Albums</li>
+                                <li>48 Tracks</li>
+                                <li>3.8 Average Rating</li>
+                            </ul>
+                        </div>
+                    </li>
                 {{/each}}
                 </ul>
             </div>
