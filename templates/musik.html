@@ -126,13 +126,13 @@
         <script type="text/x-handlebars" data-template-name="artists">
             <div class="artists">
                 <h2>ARTISTS</h2>
-                <p>This page will show a list of the artists in your library</p>
+                <p>This is where you&#39;ll find a list of artists in your library</p>
                 <ul>
                 {{#each artist in controller}}
                     <li class='artist'>
-                        <div class="image-120x120">&nbsp;</div>
-                        <div class="album-details">
-                            <a href='#'><h3>{{artist.name}}</h3></a>
+                        <div class="image image-120x120">&nbsp;</div>
+                        <div class="details">
+                            {{#linkTo artist artist}}<h3>{{artist.name}}</h3>{{/linkTo}}
                             <ul>
                                 <li>5 Albums</li>
                                 <li>48 Tracks</li>
@@ -142,6 +142,22 @@
                     </li>
                 {{/each}}
                 </ul>
+            </div>
+        </script>
+
+        <!-- Artist - shows details about an individual artist -->
+        <script type="text/x-handlebars" data-template-name="artist">
+            <div class="artist">
+                <div class="image image-300x300">&nbsp;</div>
+                <div class="details">
+                    <h3>{{name}}</h3>
+                    <ul>
+                        <li>Musicbrainz id: {{musicbrainz_artistid}}</li>
+                        <li>5 Albums</li>
+                        <li>48 Tracks</li>
+                        <li>3.8 Average Rating</li>
+                    </ul>
+                </div>
             </div>
         </script>
 

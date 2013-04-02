@@ -19,6 +19,7 @@ App.Router.map(function() {
     this.route('login');
     this.route('nowplaying')
     this.route('artists');
+    this.route('artist', {path: '/artists/:artrist_id'});
     this.route('albums');
     this.route('addmedia');
 });

@@ -161,15 +161,27 @@ header ul.current-user li {
   overflow: auto;
   width: 100%;
 }
-.content .artists li.artist div {
+
+/* floats artist and album images to the left */
+.content .artist div.image, .content .album div.image {
   float: left;
 }
-.content .artists li.artist div.album-details {
+
+/* floats artist and album details to the left */
+.content .artist div.details, .content .album div.details {
+  float: left;
   margin-left: 20px;
-  width: 400px;
+  width: 600px;
 }
 
 .content .image-120x120 {
+  background-color: gray;
+  border: 1px solid black;
+  height: 120px;
+  width: 120px;
+}
+
+.content .image-300x300 {
   background-color: gray;
   border: 1px solid black;
   height: 120px;
