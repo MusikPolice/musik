@@ -19,7 +19,7 @@ App.Router.map(function() {
     this.route('login');
     this.route('nowplaying')
     this.route('artists');
-    this.route('artist', {path: '/artists/:artrist_id'});
+    this.route('artist', {path: '/artist/:artist_id'});
     this.route('albums');
     this.route('addmedia');
 });
@@ -28,6 +28,8 @@ App.Router.map(function() {
 App.Artist = Ember.Object.extend({});
 App.Artist.reopenClass({
   allArtists: [],
+  artist: null,
+
   all: function() {
     var self = this;
     this.allArtists = [];
@@ -42,6 +44,23 @@ App.Artist.reopenClass({
       }
     });
     return this.allArtists;
+  },
+
+  find: function(artist_id) {
+    var self = this;
+    this.artist = App.Artist.create();
+    $.ajax({
+      url: '/api/artists/id/' + artist_id,
+      dataType: 'json',
+      context: this,
+      success: function(response) {
+        $.each(response, function(i, item) {
+          self.artist.setProperties(response[i]);
+        })
+      }
+    });
+    this.artist.set('id', artist_id);
+    return this.artist;
   }
 });
 
@@ -49,5 +68,11 @@ App.Artist.reopenClass({
 App.ArtistsRoute = Ember.Route.extend({
   model: function() {
     return App.Artist.all();
+  }
+});
+
+App.ArtistRoute = Ember.Route.extend({
+  model: function(params) {
+    return App.Artist.find(params.artist_id);
   }
 });

@@ -174,13 +174,13 @@ header ul.current-user li {
   width: 600px;
 }
 
+/* default image sizes - replace these with actual images once available */
 .content .image-120x120 {
   background-color: gray;
   border: 1px solid black;
   height: 120px;
   width: 120px;
 }
-
 .content .image-300x300 {
   background-color: gray;
   border: 1px solid black;
