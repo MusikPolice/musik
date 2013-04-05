@@ -1,36 +1,6 @@
-//creates the application
+//create the application
 App = Ember.Application.create({
     LOG_TRANSITIONS: true
-});
-
-//allows for pretty urls and back/forward button use
-App.Router.reopen({
-    location: 'history'
-});
-
-//sets up the main application controller
-App.ApplicationController = Ember.Controller.extend({
-    user: null
-});
-
-//maps urls for application pages
-App.Router.map(function() {
-    this.route('register');
-    this.route('login');
-    this.route('nowplaying')
-    this.route('artists');
-    this.route('artist', {path: '/artist/:artist_id'});
-    this.route('albums');
-    this.route('album', {path: '/album/:album_id'});
-    this.route('addmedia');
-});
-
-/**
- * Users
- */
-App.User = Ember.Object.extend({});
-App.User.reopenClass({
-
 });
 
 /**
@@ -135,4 +105,29 @@ App.AlbumRoute = Ember.Route.extend({
   model: function(params) {
     return App.Album.find(params.album_id);
   }
+});
+
+/**
+ * Application entry point
+ */
+//allows for pretty urls and back/forward button use
+App.Router.reopen({
+    location: 'history'
+});
+
+//sets up the main application controller
+App.ApplicationController = Ember.Controller.extend({
+    user: App.User.create()
+});
+
+//maps urls for application pages
+App.Router.map(function() {
+    this.route('register');
+    this.route('login');
+    this.route('nowplaying')
+    this.route('artists');
+    this.route('artist', {path: '/artist/:artist_id'});
+    this.route('albums');
+    this.route('album', {path: '/album/:album_id'});
+    this.route('addmedia');
 });
