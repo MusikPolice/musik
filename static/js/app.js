@@ -25,43 +25,49 @@ App.Router.map(function() {
     this.route('addmedia');
 });
 
-//an artist object that can fetch artists from the server
+/**
+ * Users
+ */
+App.User = Ember.Object.extend({});
+App.User.reopenClass({
+
+});
+
+/**
+ * Artists
+ */
 App.Artist = Ember.Object.extend({});
 App.Artist.reopenClass({
-  allArtists: [],
-  artist: null,
-
+  
   all: function() {
-    var self = this;
-    this.allArtists = [];
+    var allArtists = [];
     $.ajax({
       url: '/api/artists',
       dataType: 'json',
       context: this,
       success: function(response) {
         $.each(response, function(i, item) {
-          self.allArtists.addObject(App.Artist.create(response[i]));
+          allArtists.addObject(App.Artist.create(response[i]));
         })
       }
     });
-    return this.allArtists;
+    return allArtists;
   },
 
   find: function(artist_id) {
-    var self = this;
-    this.artist = App.Artist.create();
+    var artist = App.Artist.create();
     $.ajax({
       url: '/api/artists/id/' + artist_id,
       dataType: 'json',
       context: this,
       success: function(response) {
         $.each(response, function(i, item) {
-          self.artist.setProperties(response[i]);
+          artist.setProperties(response[i]);
         })
       }
     });
-    this.artist.set('id', artist_id);
-    return this.artist;
+    artist.set('id', artist_id);
+    return artist;
   }
 });
 
@@ -79,43 +85,41 @@ App.ArtistRoute = Ember.Route.extend({
   }
 });
 
-//logical model of an album
+/**
+ * Albums
+ */
 App.Album = Ember.Object.extend({});
 App.Album.reopenClass({
-  allAlbums: [],
-  album: null,
 
   all: function() {
-    var self = this;
-    this.allAlbums = [];
+    var allAlbums = [];
     $.ajax({
       url: '/api/albums',
       dataType: 'json',
       context: this,
       success: function(response) {
         $.each(response, function(i, item) {
-          self.allAlbums.addObject(App.Album.create(response[i]));
+          allAlbums.addObject(App.Album.create(response[i]));
         })
       }
     });
-    return this.allAlbums;
+    return allAlbums;
   },
 
   find: function(album_id) {
-    var self = this;
-    this.album = App.Album.create();
+    var album = App.Album.create();
     $.ajax({
       url: '/api/albums/id/' + album_id,
       dataType: 'json',
       context: this,
       success: function(response) {
         $.each(response, function(i, item) {
-          self.album.setProperties(response[i]);
+          album.setProperties(response[i]);
         })
       }
     });
-    this.album.set('id', album_id);
-    return this.album;
+    album.set('id', album_id);
+    return album;
   }
 });
 
