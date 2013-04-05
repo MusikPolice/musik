@@ -21,6 +21,7 @@ App.Router.map(function() {
     this.route('artists');
     this.route('artist', {path: '/artist/:artist_id'});
     this.route('albums');
+    this.route('album', {path: '/album/:album_id'});
     this.route('addmedia');
 });
 
@@ -64,15 +65,70 @@ App.Artist.reopenClass({
   }
 });
 
-//links artist object to the /artist route
+//links artist object to the /artists route
 App.ArtistsRoute = Ember.Route.extend({
   model: function() {
     return App.Artist.all();
   }
 });
 
+//links artist object to the /artist route
 App.ArtistRoute = Ember.Route.extend({
   model: function(params) {
     return App.Artist.find(params.artist_id);
+  }
+});
+
+//logical model of an album
+App.Album = Ember.Object.extend({});
+App.Album.reopenClass({
+  allAlbums: [],
+  album: null,
+
+  all: function() {
+    var self = this;
+    this.allAlbums = [];
+    $.ajax({
+      url: '/api/albums',
+      dataType: 'json',
+      context: this,
+      success: function(response) {
+        $.each(response, function(i, item) {
+          self.allAlbums.addObject(App.Album.create(response[i]));
+        })
+      }
+    });
+    return this.allAlbums;
+  },
+
+  find: function(album_id) {
+    var self = this;
+    this.album = App.Album.create();
+    $.ajax({
+      url: '/api/albums/id/' + album_id,
+      dataType: 'json',
+      context: this,
+      success: function(response) {
+        $.each(response, function(i, item) {
+          self.album.setProperties(response[i]);
+        })
+      }
+    });
+    this.album.set('id', album_id);
+    return this.album;
+  }
+});
+
+//links album object to the /albums route
+App.AlbumsRoute = Ember.Route.extend({
+  model: function() {
+    return App.Album.all();
+  }
+});
+
+//links album object to the /album route
+App.AlbumRoute = Ember.Route.extend({
+  model: function(params) {
+    return App.Album.find(params.album_id);
   }
 });

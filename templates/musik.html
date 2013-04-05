@@ -126,7 +126,6 @@
         <script type="text/x-handlebars" data-template-name="artists">
             <div class="artists">
                 <h2>ARTISTS</h2>
-                <p>This is where you&#39;ll find a list of artists in your library</p>
                 <ul>
                 {{#each artist in controller}}
                     <li class='artist'>
@@ -165,8 +164,36 @@
         <script type="text/x-handlebars" data-template-name="albums">
             <div class="albums">
                 <h2>ALBUMS</h2>
-                <p>This page will show a list of the albums in your library</p>
-                <ul class='albums'></ul>
+                <ul>
+                {{#each album in controller}}
+                    <li class='album'>
+                        <div class="image image-120x120">&nbsp;</div>
+                        <div class="details">
+                            {{#linkTo album album}}<h3>{{album.title}}</h3>{{/linkTo}}
+                            <ul>
+                                <li>Released in {{album.year}}</li>
+                                <li>{{album.label}} {{#if album.country}}({{album.country}}){{/if}}</li>
+                                <li>3.8 Average Rating</li>
+                            </ul>
+                        </div>
+                    </li>
+                {{/each}}
+                </ul>
+            </div>
+        </script>
+
+        <!-- Album - shows details about an individual album -->
+        <script type="text/x-handlebars" data-template-name="album">
+            <div class="album">
+                <div class="image image-300x300">&nbsp;</div>
+                <div class="details">
+                    <h3>{{title}}</h3>
+                    <ul>
+                        <li>Released in {{year}}</li>
+                        <li>{{label}} {{#if country}}({{country}}){{/if}}</li>
+                        <li>3.8 Average Rating</li>
+                    </ul>
+                </div>
             </div>
         </script>
 

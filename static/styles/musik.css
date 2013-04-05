@@ -131,8 +131,6 @@ header ul.current-user li {
 }
 
 .content .addmedia {
-  position: relative;
-  margin: auto;
   width: 465px;
 }
 .content .addmedia form label {
@@ -152,11 +150,11 @@ header ul.current-user li {
 .content .addmedia form button {
   display: block;
   position: absolute;
-  right: 0px;
+  left: 555px;
   width: 120px;
 }
 
-.content .artists li.artist {
+.content .artists li.artist, .content .albums li.album {
   margin-top: 20px;
   overflow: auto;
   width: 100%;
