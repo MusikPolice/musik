@@ -108,6 +108,28 @@ App.AlbumRoute = Ember.Route.extend({
 });
 
 /**
+ * Users
+ */
+App.User = Ember.Object.extend({});
+App.User.reopenClass({
+
+  all: function() {
+    var allUsers = [];
+    $.ajax({
+      url: '/api/users',
+      dataType: 'json',
+      context: this,
+      success: function(response) {
+        $.each(response, function(i, item) {
+          allUsers.addObject(App.User.create(response[i]));
+        })
+      }
+    });
+    return allUsers;
+  }
+});
+
+/**
  * Application entry point
  */
 //allows for pretty urls and back/forward button use
