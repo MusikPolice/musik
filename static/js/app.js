@@ -137,7 +137,23 @@ App.AddmediaController = Ember.ObjectController.extend({
     alert("TODO: pop a browse dialog");
   },
   submit: function() {
-    alert("TODO: submit the form");
+    var importpath = $('input#path').val();
+    $.ajax({
+      url: '/api/importer',
+      contentType: 'application/json',
+      data: '{"path": "' + importpath + '"}',
+      dataType: 'application/json',
+      type: 'POST',
+      context: this,
+      success: function(response) {
+        //TODO: eventually, this should start looking for importer messages
+        //      to show the user the status of the importer in browser.
+        alert('Import path' + importpath +' successfully submitted.');
+      },
+      error: function(response) {
+        alert('Failed to submit path for import.');
+      }
+    });
   }
 });
 
