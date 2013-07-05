@@ -130,6 +130,18 @@ App.User.reopenClass({
 });
 
 /**
+ * Add Media
+ */
+App.AddmediaController = Ember.ObjectController.extend({
+  browse: function() {
+    alert("TODO: pop a browse dialog");
+  },
+  submit: function() {
+    alert("TODO: submit the form");
+  }
+});
+
+/**
  * Application entry point
  */
 //allows for pretty urls and back/forward button use

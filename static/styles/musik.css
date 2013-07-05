@@ -130,9 +130,6 @@ header ul.current-user li {
   width: 80px;
 }
 
-.content .addmedia {
-  width: 465px;
-}
 .content .addmedia form label {
   display: inline-block;
   width: 50px;
@@ -144,13 +141,18 @@ header ul.current-user li {
 .content .addmedia form input[type=text] {
   width: 320px;
 }
-.content .addmedia form input[type=button] {
-  width: 80px;
+.content .addmedia #importmedia .inputs {
+  float: left;
+  width: 380px;
+}
+.content .addmedia #importmedia .buttons {
+  float: left;
+  margin-left: 10px;
+  margin-top: 10px;
+  width: 130px;
 }
 .content .addmedia form button {
   display: block;
-  position: absolute;
-  left: 555px;
   width: 120px;
 }
 

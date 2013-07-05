@@ -216,12 +216,14 @@
                 {{/if}}
 
                 <form id="importmedia">
-                    <div>
+                    <div class="inputs">
                         <label for="path">Path:</label>
                         <input id="path" name="path" type="text">
-                        <input type="button" class="browse" value="Browse">
                     </div>
-                    <button type="submit" class="addmedia">Import Music</button>
+                    <div class="buttons">
+                        <button {{action browse}} class="browse">Browse</button>
+                        <button {{action submit}} class="addmedia">Import Music</button>
+                    </div>
                 </form>
             </div>
         </script>
