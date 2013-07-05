@@ -470,7 +470,7 @@ class ImportThread(threading.Thread):
                 album.compilation = metadata.comp
             elif album.compilation != metadata.comp:
                 # TODO: conflict!
-                self.log.warning(u'album comp conflict for album %s: %b != %b' % (album.title, album.compilation, metadata.comp))
+                self.log.warning(u'album comp conflict for album %s: %s != %s' % (album.title, album.compilation, metadata.comp))
 
             # country
             if metadata.country != '':
