@@ -4,4 +4,5 @@ MarkupSafe==0.18
 SQLAlchemy==0.8.2
 argparse==1.2.1
 mutagen==1.22
+requests==2.0.0
 wsgiref==0.1.2
