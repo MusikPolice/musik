@@ -66,7 +66,7 @@ class Albums():
 
         # do the query
         results = _query(Album, Album.title_sort, params)
-        return json.dumps(results)
+        return json.dumps(results, cls=DateTimeEncoder)
 
 
 class Artists():
@@ -87,7 +87,7 @@ class Artists():
 
         # do the query
         results = _query(Artist, Artist.name_sort, params)
-        return json.dumps(results)
+        return json.dumps(results, cls=DateTimeEncoder)
 
 
 class Discs():
@@ -109,7 +109,7 @@ class Discs():
 
         # do the query
         results = _query(Disc, Disc.id, params)
-        return json.dumps(results)
+        return json.dumps(results, cls=DateTimeEncoder)
 
 
 class Tracks():

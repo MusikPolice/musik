@@ -159,9 +159,23 @@ class Artist(Base):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
-    def as_dict(self):
-        """Returns a representation of the artist as a dictionary"""
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    def as_dict(self, ignored=[]):
+        """Returns a representation of the artist as a dictionary.
+        Columns specified in the ignored list will not be included in the dictionary."""
+        artist_dict = {}
+
+        # add table columns to the dict
+        for column in self.__table__.columns:
+            if (column.name not in ignored):
+                artist_dict[column.name] = getattr(self, column.name)
+
+        # add computed columns to the dict
+        if 'albums' not in ignored:
+            # when adding this artist's albums, we have to ignore their artist field because including
+            # it causes infinite recursion and a stack overflow
+            artist_dict['albums'] = [album.as_dict(ignored=['artist']) for album in self.albums]
+
+        return artist_dict
 
 
 class Album(Base):
@@ -188,6 +202,7 @@ class Album(Base):
     title_sort = Column(String)                             # sortable title of the album
     year = Column(Integer)                                  # the year in which the album was released
 
+    # computed columns that link to other objects
     artist = relationship('Artist', backref=backref('albums', order_by=id))
 
     def __init__(self, title):
@@ -201,9 +216,30 @@ class Album(Base):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
-    def as_dict(self):
-        """Returns a representation of the album as a dictionary"""
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    def as_dict(self, ignored=[]):
+        """Returns a representation of the album as a dictionary.
+        Columns specified in the ignored list will not be included in the dictionary."""
+        album_dict = {}
+
+        # add table columns to dict
+        for column in self.__table__.columns:
+            if column.name not in ignored:
+                album_dict[column.name] = getattr(self, column.name)
+
+        # add computed columns to dict
+        if self.artist is not None and 'artist' not in ignored:
+            album_dict['artist'] = self.artist.as_dict(ignored=['albums'])
+
+        if self.discs is not None and 'discs' not in ignored:
+            # all discs have the same album as a parent, so ignore this attribute on child discs or
+            # else risk a stack overflow thanks to unbounded recursion
+            album_dict['discs'] = [disc.as_dict(ignored=['album', 'tracks']) for disc in self.discs]
+
+        if self.tracks is not None and 'tracks' not in ignored:
+            # no need to include all of the computed columns for every track - that would be a waste
+            album_dict['tracks'] = [track.as_dict(ignored=['album', 'album_artist', 'artist', 'disc']) for track in self.tracks]
+
+        return album_dict
 
 
 class Disc(Base):
@@ -239,9 +275,24 @@ class Disc(Base):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
-    def as_dict(self):
-        """Returns a representation of the disc as a dictionary"""
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    def as_dict(self, ignored=[]):
+        """Returns a representation of the disc as a dictionary.
+        Columns specified in the ignored list will not be included in the dictionary."""
+        disc_dict = {}
+
+        # add table columns to dict
+        for column in self.__table__.columns:
+            if column.name not in ignored:
+                disc_dict[column.name] = getattr(self, column.name)
+
+        # add computed columns to dict
+        if 'album' not in ignored:
+            disc_dict['album'] = self.album.as_dict()
+
+        if 'tracks' not in ignored:
+            disc_dict['tracks'] = [track.as_dict() for track in self.tracks]
+
+        return disc_dict
 
 
 class Track(Base):
@@ -297,11 +348,30 @@ class Track(Base):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
-    def as_dict(self):
-        """Returns a representation of the track as a dictionary"""
-        fields = {c.name: getattr(self, c.name) for c in self.__table__.columns}
-        fields['stream_uri'] = '%s/api/stream/%s' % (config.get_site_root(), str(fields['id']))
-        return fields
+    def as_dict(self, ignored=[]):
+        """Returns a representation of the track as a dictionary.
+        Columns specified in the ignored list will not be included in the dictionary."""
+        track_dict = {}
+
+        # add table columns to dict
+        for column in self.__table__.columns:
+            if column.name not in ignored:
+                track_dict[column.name] = getattr(self, column.name)
+
+        # add computed columns to dict
+        if self.album is not None and 'album' not in ignored:
+            track_dict['album'] = self.album.as_dict(ignored=['artist'])
+
+        if self.album_artist is not None and 'album_artist' not in ignored:
+            track_dict['album_artist'] = self.album_artist.as_dict(ignored=['albums'])
+
+        if self.artist is not None and 'artist' not in ignored:
+            track_dict['artist'] = self.artist.as_dict(ignored=['albums'])
+
+        if self.disc is not None and 'disc' not in ignored:
+            track_dict['disc'] = self.disc.as_dict(ignored=['tracks'])
+
+        return track_dict
 
 
 # Loosely wraps the SQLAlchemy database types and access methods.
