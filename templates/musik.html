@@ -4,56 +4,60 @@
         <meta charset="UTF-8">
         <title>Musik Ember.js App</title>
         <meta name="author" content="MusikPolice">
-        <meta name="description" content="An ember.js powered implementation of Musik">
+        <meta name="description" content="An implementation of Musik powered by jQuery and Handlebars">
 
         <link rel="stylesheet" href="/static/styles/reset.css" />
         <link rel="stylesheet" href="/static/styles/musik.css" />
+
+        <script src="/static/js/libs/jquery-2.0.3.js"></script>
+        <script src="/static/js/libs/handlebars-1.1.2.js"></script>
+        <script src="/static/js/app.js"></script>
+        <script src="/static/js/helpers.js"></script>
     </head>
     <body>
+        <!-- application will be rendered inside of this div -->
+        <div id='wrapper'></div>
 
         <!-- Main Application template. All other templates will be rendered inside of this one -->
-        <script type="text/x-handlebars">
-            <div class='wrapper'>
-                <header>
-                    <h1>MUSIK <small>The world&#39;s finest music player</small></h1>
+        <script id="page-template" type="text/x-handlebars">
+            <header>
+                <h1>MUSIK <small>The world&#39;s finest music player</small></h1>
 
-                    <ul class="current-user">
-                        {{#if user}}
-                            <li><a href='#'>{{ user.username }}</a></li>
-                            <li><a href='#' id="logout">logout</a></li>
-                        {{else}}
-                            <li>{{#linkTo login}}Please log in{{/linkTo}}</li>
-                        {{/if}}
+                <ul class="current-user">
+                    {{#if user}}
+                        <li><a href='#'>{{ user.username }}</a></li>
+                        <li><a href='#' id="logout">logout</a></li>
+                    {{else}}
+                        <li><a href='#'>Please log in</a></li>
+                    {{/if}}
+                </ul>
+
+                <nav class="navigation">
+                    <ul class="pages">
+                        <li><a href='#' class='nowplaying'>Now Playing</a></li>
+                        <li><a href='#' class='artists'>Artists</a></li>
+                        <li><a href='#' class='albums'>Albums</a></li>
+                        <li><a href='#' class='addmedia'>Add Media</a></li>
+                        <li><a href='#' class='search'>Search</a></li>
                     </ul>
 
-                    <nav class="navigation">
-                        <ul class="pages">
-                            <li>{{#linkTo nowplaying}}Now Playing{{/linkTo}}</li>
-                            <li>{{#linkTo artists}}Artists{{/linkTo}}</li>
-                            <li>{{#linkTo albums}}Albums{{/linkTo}}</li>
-                            <li>{{#linkTo addmedia}}Add Media{{/linkTo}}</li>
-                            <li><a href='#'>Search</a></li>
-                        </ul>
+                    <ul class="player-controls">
+                        <li><a href='#'>Play</a></li>
+                        <li><a href='#'>Skip</a></li>
+                    </ul>
+                </nav>
+            </header>
 
-                        <ul class="player-controls">
-                            <li><a href='#'>Play</a></li>
-                            <li><a href='#'>Skip</a></li>
-                        </ul>
-                    </nav>
-                </header>
+            <!-- all other templates will be rendered inside of this div -->
+            <div id='content'></div>
 
-                <div class='content'>
-                    {{outlet}}
-                </div>
-
-                <footer>
-                    <p>&copy; <a href="http://github.com/MusikPolice/musik/" class="muted">MusikPolice</a> 2012</p>
-                </footer>
-            </div>
+            <footer>
+                <p>&copy; <a href="http://github.com/MusikPolice/musik/" class="muted">MusikPolice</a> 2012</p>
+            </footer>
         </script>
 
         <!-- User Registration template -->
-        <script type="text/x-handlebars" data-template-name="register">
+        <script id="register-account-template" type="text/x-handlebars">
             <div class='register'>
                 <h2>CREATE A NEW ACCOUNT</h2>
                 
@@ -81,12 +85,12 @@
 
                     <button type="submit" class="register">Create</button>
                 </form>
-                <p>If you already have an account, {{#linkTo login}}log in{{/linkTo}}.</p>
+                <p>If you already have an account, <a href='#'>log in</a>.</p>
             </div>
         </script>
 
         <!-- Login Template -->
-        <script type="text/x-handlebars" data-template-name="login">
+        <script id="login-template" type="text/x-handlebars">
             <div class='login'>
                 {{#if error}}
                 <h2>FAILBOATS AWAY!</h2>
@@ -110,12 +114,12 @@
 
                     <button type="submit" class="login">Login</button>
                 </form>
-                <p>If you don&#39;t have an account, {{#linkTo register}}register now{{/linkTo}}.</p>
+                <p>If you don&#39;t have an account, <a href='#'>register now</a>.</p>
             </div>
         </script>
 
         <!-- Now Playing page - the currently playing song and queue -->
-        <script type="text/x-handlebars" data-template-name="nowplaying">
+        <script id="nowplaying-template" type="text/x-handlebars">
             <div class='nowplaying'>
                 <h2>NOW PLAYING</h2>
                 <p>Eventually, this view will show the queue and the currently playing track with large obnoxious artwork.</p>
@@ -123,7 +127,7 @@
         </script>
 
         <!-- Artists - shows a list of artists in your library -->
-        <script type="text/x-handlebars" data-template-name="artists">
+        <script id="artists-template" type="text/x-handlebars">
             <div class="artists">
                 <h2>ARTISTS</h2>
                 <ul>
@@ -131,12 +135,24 @@
                     <li class='artist'>
                         <div class="image image-120x120">&nbsp;</div>
                         <div class="details">
-                            {{#linkTo artist artist}}<h3>{{artist.name}}</h3>{{/linkTo}}
+                            <a href='#'><h3>{{artist.name}}</h3></a>
                             <ul>
-                                <li>5 Albums</li>
+                                <li>
+                                    {{#arrayLength artist.albums}}
+                                        {{length}} Albums
+                                    {{else}}
+                                        This artist doesn&#39;t have any albums
+                                    {{/arrayLength}}
+                                </li>
                                 <li>48 Tracks</li>
                                 <li>3.8 Average Rating</li>
                             </ul>
+                        </div>
+                        <div class="albums">
+                            {{#each artist.albums}}
+                                <p>Title: {{title}}</p>
+                                <p>Id: {{id}}</p>
+                            {{/each}}
                         </div>
                     </li>
                 {{/each}}
@@ -145,7 +161,7 @@
         </script>
 
         <!-- Artist - shows details about an individual artist -->
-        <script type="text/x-handlebars" data-template-name="artist">
+        <script id="artist-template" type="text/x-handlebars">
             <div class="artist">
                 <div class="image image-300x300">&nbsp;</div>
                 <div class="details">
@@ -161,15 +177,16 @@
         </script>
 
         <!-- Albums - shows a list of albums in your library -->
-        <script type="text/x-handlebars" data-template-name="albums">
+        <script id="albums-template" type="text/x-handlebars">
             <div class="albums">
                 <h2>ALBUMS</h2>
                 <ul>
-                {{#each album in controller}}
+                {{#each this}}
+                    <!-- TODO: use a sub template here -->
                     <li class='album'>
                         <div class="image image-120x120">&nbsp;</div>
                         <div class="details">
-                            {{#linkTo album album}}<h3>{{album.title}}</h3>{{/linkTo}}
+                            <a href='#'><h3>{{album.title}}</h3></a>
                             <ul>
                                 <li>Released in {{album.year}}</li>
                                 <li>{{album.label}} {{#if album.country}}({{album.country}}){{/if}}</li>
@@ -183,7 +200,7 @@
         </script>
 
         <!-- Album - shows details about an individual album -->
-        <script type="text/x-handlebars" data-template-name="album">
+        <script id="album-template" type="text/x-handlebars">
             <div class="album">
                 <div class="image image-300x300">&nbsp;</div>
                 <div class="details">
@@ -198,7 +215,7 @@
         </script>
 
         <!-- Add Media - allows you to add media to your library -->
-        <script type="text/x-handlebars" data-template-name="addmedia">
+        <script id="addmedia-template" type="text/x-handlebars">
             <div class="addmedia">
                 <h2>IMPORT MEDIA</h2>
                 <p>Need to add some music to your library? This is the place to do it.</p>
@@ -221,16 +238,11 @@
                         <input id="path" name="path" type="text">
                     </div>
                     <div class="buttons">
-                        <button {{action browse}} class="browse">Browse</button>
-                        <button {{action submit}} class="addmedia">Import Music</button>
+                        <button class="browse">Browse</button>
+                        <button class="addmedia">Import Music</button>
                     </div>
                 </form>
             </div>
         </script>
-
-        <script src="/static/js/libs/jquery-1.9.1.js"></script>
-        <script src="/static/js/libs/handlebars-1.0.0-rc.3.js"></script>
-        <script src="/static/js/libs/ember-1.0.0-rc.1.js"></script>
-        <script src="/static/js/app.js"></script>
     </body>
 </html>

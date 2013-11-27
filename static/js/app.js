@@ -1,183 +1,89 @@
-//create the application
-App = Ember.Application.create({
-    LOG_TRANSITIONS: true
-});
+/*jslint browser: true*/
+/*global $, jQuery*/
+
+var pageTemplate = null;
 
 /**
- * Artists
+ * Fetches the list of all albums from the server
+ * The specified callback function will be called with json object returned by the api on success
+ * 
  */
-App.Artist = Ember.Object.extend({});
-App.Artist.reopenClass({
-  
-  all: function() {
-    var allArtists = [];
-    $.ajax({
-      url: '/api/artists',
-      dataType: 'json',
-      context: this,
-      success: function(response) {
-        $.each(response, function(i, item) {
-          allArtists.addObject(App.Artist.create(response[i]));
+function getAlbums(callback) {
+    $.get('http://localhost:8080/api/albums')
+        .done(function(data) {
+            callback(data);
         })
-      }
-    });
-    return allArtists;
-  },
-
-  find: function(artist_id) {
-    var artist = App.Artist.create();
-    $.ajax({
-      url: '/api/artists/id/' + artist_id,
-      dataType: 'json',
-      context: this,
-      success: function(response) {
-        $.each(response, function(i, item) {
-          artist.setProperties(response[i]);
-        })
-      }
-    });
-    artist.set('id', artist_id);
-    return artist;
-  }
-});
-
-//links artist object to the /artists route
-App.ArtistsRoute = Ember.Route.extend({
-  model: function() {
-    return App.Artist.all();
-  }
-});
-
-//links artist object to the /artist route
-App.ArtistRoute = Ember.Route.extend({
-  model: function(params) {
-    return App.Artist.find(params.artist_id);
-  }
-});
+        .fail(function() {
+            console.log('GET request to /api/albums failed');
+        });
+}
 
 /**
- * Albums
+ * Resets all jQuery event handlers after every page render
  */
-App.Album = Ember.Object.extend({});
-App.Album.reopenClass({
+function hookEventHandlers() {
+    'use strict';
 
-  all: function() {
-    var allAlbums = [];
-    $.ajax({
-      url: '/api/albums',
-      dataType: 'json',
-      context: this,
-      success: function(response) {
-        $.each(response, function(i, item) {
-          allAlbums.addObject(App.Album.create(response[i]));
-        })
-      }
+    //nav links
+    $('nav.navigation a').off('click.musik.nav');
+    $('nav.navigation a.nowplaying').on('click.musik.nav', function(event) {
+        'use strict'; 
+        event.preventDefault();
+        displayTemplate('#nowplaying-template', {});
     });
-    return allAlbums;
-  },
-
-  find: function(album_id) {
-    var album = App.Album.create();
-    $.ajax({
-      url: '/api/albums/id/' + album_id,
-      dataType: 'json',
-      context: this,
-      success: function(response) {
-        $.each(response, function(i, item) {
-          album.setProperties(response[i]);
-        })
-      }
+    $('nav.navigation a.artists').on('click.musik.nav', function(event) {
+        'use strict'; 
+        event.preventDefault();
+        displayTemplate('#artists-template', {});
     });
-    album.set('id', album_id);
-    return album;
-  }
-});
+    $('nav.navigation a.albums').on('click.musik.nav', function(event) {
+        'use strict'; 
+        event.preventDefault();
 
-//links album object to the /albums route
-App.AlbumsRoute = Ember.Route.extend({
-  model: function() {
-    return App.Album.all();
-  }
-});
+        //fetch a list of albums from the api and display them in the template
+        getAlbums(function (data) {
+            console.log('getAlbums callback');
+            displayTemplate('#albums-template', data);
+        });
+    });
+    $('nav.navigation a.addmedia').on('click.musik.nav', function(event) {
+        'use strict'; 
+        event.preventDefault();
+        displayTemplate('#addmedia-template', {});
+    });
 
-//links album object to the /album route
-App.AlbumRoute = Ember.Route.extend({
-  model: function(params) {
-    return App.Album.find(params.album_id);
-  }
-});
+    console.log('reset event handlers');
+}
 
 /**
- * Users
+ * Re-draws the page, putting the specified template into the #content div
+ * The specified params map will be passed to the template at display time 
+ *
+ * templateSelector: String - a jQuery selector for the template to be placed into the #content div of the page
+ * params: Object - a map of values to be passed into the template at display time
  */
-App.User = Ember.Object.extend({});
-App.User.reopenClass({
+function displayTemplate(templateSelector, params) {
+    'use strict';
 
-  all: function() {
-    var allUsers = [];
-    $.ajax({
-      url: '/api/users',
-      dataType: 'json',
-      context: this,
-      success: function(response) {
-        $.each(response, function(i, item) {
-          allUsers.addObject(App.User.create(response[i]));
-        })
-      }
-    });
-    return allUsers;
-  }
-});
+    console.log('Displaying ' + templateSelector);
 
-/**
- * Add Media
- */
-App.AddmediaController = Ember.ObjectController.extend({
-  browse: function() {
-    alert("TODO: pop a browse dialog");
-  },
-  submit: function() {
-    var importpath = $('input#path').val();
-    $.ajax({
-      url: '/api/importer',
-      contentType: 'application/json',
-      data: '{"path": "' + importpath + '"}',
-      dataType: 'application/json',
-      type: 'POST',
-      context: this,
-      success: function(response) {
-        //TODO: eventually, this should start looking for importer messages
-        //      to show the user the status of the importer in browser.
-        alert('Import path' + importpath +' successfully submitted.');
-      },
-      error: function(response) {
-        alert('Failed to submit path for import.');
-      }
-    });
-  }
-});
+    //only keep one compiled copy of the page template on hand
+    if (pageTemplate === null) {
+        pageTemplate = Handlebars.compile($('#page-template').html());
+    }
 
-/**
- * Application entry point
- */
-//allows for pretty urls and back/forward button use
-App.Router.reopen({
-    location: 'history'
-});
+    //TODO: any template info that the header needs must be fetched here
+    $('#wrapper').html(pageTemplate({}));
 
-//sets up the main application controller
-App.ApplicationController = Ember.Controller.extend({
-    user: App.User.create()
-});
+    //build the requested template and dump it into the page contents block
+    //TODO: long term, we could keep a global map of compiled templates
+    var template = Handlebars.compile($(templateSelector).html());
+    $('#content').html(template(params));
 
-//maps urls for application pages
-App.Router.map(function() {
-    this.route('register');
-    this.route('login');
-    this.route('nowplaying')
-    this.route('artists');
-    this.route('artist', {path: '/artist/:artist_id'});
-    this.route('albums');
-    this.route('album', {path: '/album/:album_id'});
-    this.route('addmedia');
+    hookEventHandlers();
+}
+
+$(function() {
+    'use strict';
+    displayTemplate('#nowplaying-template', {});    
 });

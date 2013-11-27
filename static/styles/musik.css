@@ -23,7 +23,7 @@ a:hover {
     text-decoration: underline;
 }
 
-.wrapper {
+#wrapper {
     margin-left: auto;
     margin-right: auto;
     margin-top: 50px;
@@ -80,115 +80,115 @@ header ul.current-user li {
   text-align: right;
 }
 
-.content {
+#content {
     margin-bottom: 20px;
     margin-top: 20px;
     min-height: 300px;
 }
 
-.content .login {
+#content .login {
   margin: auto;
   width: 300px;
 }
-.content .login form {
+#content .login form {
   margin-bottom: 10px;
 }
-.content .login form label {
+#content .login form label {
   display: inline-block;
   width: 80px;
 }
-.content .login form input {
+#content .login form input {
   display: inline;
   margin-top: 10px;
   width: 210px;
 }
-.content .login form button {
+#content .login form button {
   margin-left: 220px;
   margin-top: 10px;
   width: 80px;
 }
 
-.content .register {
+#content .register {
   margin: auto;
   width: 320px;
 }
-.content .register form {
+#content .register form {
   margin-bottom: 10px;
 }
-.content .register form label {
+#content .register form label {
   display: inline-block;
   width: 130px;
 }
-.content .register form input {
+#content .register form input {
   display: inline;
   margin-top: 10px;
   width: 170px;
 }
-.content .register form button {
+#content .register form button {
   margin-left: 230px;
   margin-top: 10px;
   width: 80px;
 }
 
-.content .addmedia form label {
+#content .addmedia form label {
   display: inline-block;
   width: 50px;
 }
-.content .addmedia form input {
+#content .addmedia form input {
   margin-bottom: 10px;
   margin-top: 10px;
 }
-.content .addmedia form input[type=text] {
+#content .addmedia form input[type=text] {
   width: 320px;
 }
-.content .addmedia #importmedia .inputs {
+#content .addmedia #importmedia .inputs {
   float: left;
   width: 380px;
 }
-.content .addmedia #importmedia .buttons {
+#content .addmedia #importmedia .buttons {
   float: left;
   margin-left: 10px;
   margin-top: 10px;
   width: 130px;
 }
-.content .addmedia form button {
+#content .addmedia form button {
   display: block;
   width: 120px;
 }
 
-.content .artists li.artist, .content .albums li.album {
+#content .artists li.artist, #content .albums li.album {
   margin-top: 20px;
   overflow: auto;
   width: 100%;
 }
 
 /* floats artist and album images to the left */
-.content .artist div.image, .content .album div.image {
+#content .artist div.image, #content .album div.image {
   float: left;
 }
 
 /* floats artist and album details to the left */
-.content .artist div.details, .content .album div.details {
+#content .artist div.details, #content .album div.details {
   float: left;
   margin-left: 20px;
   width: 600px;
 }
 
 /* default image sizes - replace these with actual images once available */
-.content .image-120x120 {
+#content .image-120x120 {
   background-color: gray;
   border: 1px solid black;
   height: 120px;
   width: 120px;
 }
-.content .image-300x300 {
+#content .image-300x300 {
   background-color: gray;
   border: 1px solid black;
   height: 120px;
   width: 120px;
 }
 
-.content .success {
+#content .success {
   background-color: #04B200;
   color: #FFFFFF;
   margin-top: 10px;
@@ -196,7 +196,7 @@ header ul.current-user li {
   padding: 5px;
   text-align: center;
 }
-.content .error {
+#content .error {
   background-color: #B25000;
   color: #FFFFFF;
   margin-top: 10px;
