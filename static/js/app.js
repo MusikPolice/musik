@@ -19,6 +19,20 @@ function getAlbums(callback) {
 }
 
 /**
+ * Fetches the list of all artists from the server
+ * The specified callback function will be called with the json object returned by the api on success
+ */
+function getArtists(callback) {
+    $.get('http://localhost:8080/api/artists')
+        .done(function(data) {
+            callback(data);
+        })
+        .fail(function() {
+            console.log('GET request to /api/artists failed');
+        });
+}
+
+/**
  * Resets all jQuery event handlers after every page render
  */
 function hookEventHandlers() {
@@ -34,7 +48,11 @@ function hookEventHandlers() {
     $('nav.navigation a.artists').on('click.musik.nav', function(event) {
         'use strict'; 
         event.preventDefault();
-        displayTemplate('#artists-template', {});
+
+        //fetch a list of artists from the api and display them in the template
+        getArtists(function (data) {
+            displayTemplate('#artists-template', data);
+        });
     });
     $('nav.navigation a.albums').on('click.musik.nav', function(event) {
         'use strict'; 
@@ -42,7 +60,6 @@ function hookEventHandlers() {
 
         //fetch a list of albums from the api and display them in the template
         getAlbums(function (data) {
-            console.log('getAlbums callback');
             displayTemplate('#albums-template', data);
         });
     });
