@@ -33,13 +33,28 @@ function getArtists(callback) {
 }
 
 /**
+ * Fetches the artist with the specified id from the server
+ * The specified callback function will be called with the json object returned by the api on success
+ */
+function getArtist(id, callback) {
+    $.get('http://localhost:8080/api/artists/id/' + id)
+        .done(function(data) {
+            callback(data);
+        })
+        .fail(function() {
+            console.log('GET request to /api/artists/id/' + id + ' failed');
+        });
+}
+
+/**
  * Resets all jQuery event handlers after every page render
  */
 function hookEventHandlers() {
     'use strict';
 
-    //nav links
-    $('nav.navigation a').off('click.musik.nav');
+    $('a').off('click.musik.nav');
+
+    //nav toolbar links
     $('nav.navigation a.nowplaying').on('click.musik.nav', function(event) {
         'use strict'; 
         event.preventDefault();
@@ -67,6 +82,19 @@ function hookEventHandlers() {
         'use strict'; 
         event.preventDefault();
         displayTemplate('#addmedia-template', {});
+    });
+
+    //artist list element links
+    $('.artists .artist a.artist-link').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+
+        //fetch the full details for the appropriate artist
+        var id = $(this).attr('artistId');
+        getArtist(id, function(data) {
+            //we only need the first artist in the returned list
+            displayTemplate('#artist-details-template', data[0]);
+        });
     });
 
     console.log('reset event handlers');

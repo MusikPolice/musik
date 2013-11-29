@@ -5,6 +5,7 @@
 $(function() {
 	/**
 	 * Outputs the length of the supplied array.
+	 * TODO: remove this
 	 *
 	 * Usage:
 	 * {{#arrayLength someArray}}
@@ -23,6 +24,11 @@ $(function() {
 			return options.inverse();
 		}
 	});
+
+	/**
+	 * Sub template for artists list elements
+	 */
+	Handlebars.registerPartial('artistsListElement', $('#artists-list-element-template').html());
 
 	console.log('registered handlebars helpers');
 });

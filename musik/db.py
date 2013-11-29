@@ -153,6 +153,22 @@ class Artist(Base):
         self.name = name
         self.name_sort = name
 
+    # calculates the number of tracks linked to this artist by expanding its albums link
+    def numTracks(self):
+        numTracks = 0;
+        if self.albums is None:
+            return 0;
+
+        for album in self.albums:
+            numTracks += album.numTracks();
+        return numTracks;
+
+    # calculates the number of albums linked to this artist by expanding its albums link
+    def numAlbums(self):
+        if self.albums is None:
+            return 0;
+        return len(self.albums);
+
     def __unicode__(self):
         return u'<Artist(name=%s)>' % self.name
 
@@ -170,10 +186,16 @@ class Artist(Base):
                 artist_dict[column.name] = getattr(self, column.name)
 
         # add computed columns to the dict
-        if 'albums' not in ignored:
+        if self.albums is not None and 'albums' not in ignored:
             # when adding this artist's albums, we have to ignore their artist field because including
             # it causes infinite recursion and a stack overflow
-            artist_dict['albums'] = [album.as_dict(ignored=['artist']) for album in self.albums]
+            artist_dict['albums'] = [album.as_dict(ignored=['artist', 'discs', 'tracks']) for album in self.albums]
+
+        if 'numTracks' not in ignored:
+            artist_dict['numTracks'] = self.numTracks();
+
+        if 'numAlbums' not in ignored:
+            artist_dict['numAlbums'] = self.numAlbums();
 
         return artist_dict
 
@@ -210,6 +232,12 @@ class Album(Base):
         self.title = title
         self.title_sort = title
 
+    # returns the number of tracks linked to this album
+    def numTracks(self):
+        if self.tracks is None:
+            return 0;
+        return len(self.tracks);
+
     def __unicode__(self):
         return u'<Album(title=%s)>' % self.title
 
@@ -238,6 +266,9 @@ class Album(Base):
         if self.tracks is not None and 'tracks' not in ignored:
             # no need to include all of the computed columns for every track - that would be a waste
             album_dict['tracks'] = [track.as_dict(ignored=['album', 'album_artist', 'artist', 'disc']) for track in self.tracks]
+
+        if 'numTracks' not in ignored:
+            album_dict['numTracks'] = self.numTracks();
 
         return album_dict
 
