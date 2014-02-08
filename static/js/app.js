@@ -8,6 +8,7 @@ var pageTemplate = null;
  * The specified callback function will be called with json object returned by the api on success
  * 
  */
+
 function getAlbums(callback) {
     $.get('http://localhost:8080/api/albums')
         .done(function(data) {
@@ -43,6 +44,20 @@ function getArtist(id, callback) {
         })
         .fail(function() {
             console.log('GET request to /api/artists/id/' + id + ' failed');
+        });
+}
+
+/**
+ * Fetches the album with the specified id from the server
+ * The specified callback function will be called with the json object returned by the api on success
+ */
+function getAlbum(id, callback) {
+    $.get('http://localhost:8080/api/albums/id/' + id)
+        .done(function(data) {
+            callback(data);
+        })
+        .fail(function() {
+            console.log('GET request to /api/albums/id/' + id + ' failed');
         });
 }
 
@@ -84,8 +99,8 @@ function hookEventHandlers() {
         displayTemplate('#addmedia-template', {});
     });
 
-    //artist list element links
-    $('.artists .artist a.artist-link').on('click.musik.nav', function(event) {
+    //artist links
+    $('a.artist-link').on('click.musik.nav', function(event) {
         'use strict';
         event.preventDefault();
 
@@ -94,6 +109,18 @@ function hookEventHandlers() {
         getArtist(id, function(data) {
             //we only need the first artist in the returned list
             displayTemplate('#artist-details-template', data[0]);
+        });
+    });
+
+    $('.album-list-element a.album-link').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+
+        //fetch the full details of the album
+        var id = $(this).attr('albumId');
+        getAlbum(id, function(data) {
+            //we only needt he first result
+            displayTemplate('#album-details-template', data[0]);
         });
     });
 

@@ -26,9 +26,33 @@ $(function() {
 	});
 
 	/**
+	 * Converts some number of seconds into a string of format MM:SS.
+	 *
+	 * Usage:
+	 * {{#timeFormat seconds}}
+	 */
+	Handlebars.registerHelper('timeFormat', function(seconds, options) {
+		var time = parseInt(seconds,10)
+		var minutes = Math.floor(time / 60);
+		var seconds = time % 60;
+
+		//dumb hack to add leading zero to seconds
+		if (seconds < 10) {
+			return minutes + ":0" + seconds;
+		} else {
+			return minutes + ":" + seconds;
+		}
+	});
+
+	/**
 	 * Sub template for artists list elements
 	 */
-	Handlebars.registerPartial('artistsListElement', $('#artists-list-element-template').html());
+	Handlebars.registerPartial('artistListElement', $('#artist-list-element-template').html());
+
+	/**
+	 * Sub template for albums list elements
+	 */
+	Handlebars.registerPartial('albumListElementTemplate', $('#album-list-element-template').html());
 
 	console.log('registered handlebars helpers');
 });

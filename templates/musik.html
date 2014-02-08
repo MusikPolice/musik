@@ -11,6 +11,7 @@
 
         <script src="/static/js/libs/jquery-2.0.3.js"></script>
         <script src="/static/js/libs/handlebars-1.1.2.js"></script>
+        <script src="/static/js/libs/jquery-nested-1.03.js"></script>
         <script src="/static/js/app.js"></script>
         <script src="/static/js/helpers.js"></script>
     </head>
@@ -127,22 +128,23 @@
         </script>
 
         <!-- Artists - shows a list of artists in your library -->
+        <!-- TODO: rename to artist-list-template so that we can support a matrix view as well -->
         <script id="artists-template" type="text/x-handlebars">
             <div class="artists">
                 <h2>ARTISTS</h2>
                 <ul>
                 {{#each this}}
-                    {{> artistsListElement}}
+                    {{> artistListElement}}
                 {{/each}}
                 </ul>
             </div>
         </script>
 
         <!-- Artist List Element - shows an overview of the artist -->
-        <script id="artists-list-element-template" type="text/x-handlebars">
-            <li class='artist'>
+        <script id="artist-list-element-template" type="text/x-handlebars">
+            <li class='artist-list-element'>
                 <div class="image image-120x120">&nbsp;</div>
-                <div class="details">
+                <div class="artist-details">
                     <a artistId='{{id}}' href='#' class='artist-link'><h3>{{name}}</h3></a>
                     <ul>
                         <li>
@@ -159,6 +161,10 @@
                                 This artist doesn&#39;t have any albums
                             {{/if}}
                         </li>
+                        <li>
+                            <!-- TODO: replace this with a real calculation -->
+                            3.8 Average rating
+                        </li>
                     </ul>
                 </div>
             </li>
@@ -166,16 +172,16 @@
 
         <!-- Artist - shows details about an individual artist -->
         <script id="artist-details-template" type="text/x-handlebars">
-            <div class="artist">
+            <div class="artist-details">
                 <div class="image image-300x300">&nbsp;</div>
-                <div class="details">
-                    <h3>{{name}}</h3>
+                <div class="artist-details">
+                    <h2>{{name}}</h2>
                     <ul>
-                        <li>
-                            {{#if musicbrainz_artistid}}
+                        {{#if musicbrainz_artistid}}
+                            <li>
                                 Musicbrainz id: {{musicbrainz_artistid}}
-                            {{/if}}
-                        </li>
+                            </li>
+                        {{/if}}
                         <li>
                             {{#if numTracks}}
                                 {{numTracks}} tracks
@@ -183,26 +189,39 @@
                                 This artist doesn&#39;t have any tracks
                             {{/if}}
                         </li>
+                        <li>
+                            {{#if numAlbums}}
+                                {{numAlbums}} albums
+                            {{else}}
+                                This artist doesn&#39;t have any albums
+                            {{/if}}
+                        </li>
+                        <li>
+                            <!-- TODO: replace this with a real calculation -->
+                            3.8 Average rating
+                        </li>
                     </ul>
-                    <div class="albums">
-                        {{#if albums}}
-                            <h4>{{numAlbums}} ALBUMS</h4>
-                            <ul>
-                                {{#each albums}}
-                                    {{#if title}}
-                                        <!-- TODO: this should be a link to the album -->
-                                        <li>{{title}} ({{year}})</li>
-                                    {{else}}
-                                        <li>Unknown Album</li>
-                                    {{/if}}
-                                {{else}}
-                                    <li>This artist doesn&#39;t have any albums</li>
-                                {{/each}}
-                            </ul>
-                        {{else}}
-                            <p>This artist doesn&#39;t have any albums</p>
-                        {{/if}}
-                    </div>
+                </div>
+                <div class="artist-bio">
+                    <h3>Bio:</h3>
+                    <!--TODO: this is placeholder text. Replace with real bios from last.fm -->
+                    <p>
+                            Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc,
+                    </p>
+                </div>
+                <div class="artist-albums">
+                    {{#if albums}}
+                        <h4>{{numAlbums}} ALBUMS</h4>
+                        <ul>
+                            {{#each albums}}
+                                {{> albumListElementTemplate}}
+                            {{else}}
+                                <li>This artist doesn&#39;t have any albums</li>
+                            {{/each}}
+                        </ul>
+                    {{else}}
+                        <p>This artist doesn&#39;t have any albums</p>
+                    {{/if}}
                 </div>
             </div>
         </script>
@@ -213,35 +232,101 @@
                 <h2>ALBUMS</h2>
                 <ul>
                 {{#each this}}
-                    <!-- TODO: use a sub template here -->
-                    <li class='album'>
-                        <div class="image image-120x120">&nbsp;</div>
-                        <div class="details">
-                            <a href='#'><h3>{{album.title}}</h3></a>
-                            <ul>
-                                <li>Released in {{album.year}}</li>
-                                <li>{{album.label}} {{#if album.country}}({{album.country}}){{/if}}</li>
-                                <li>3.8 Average Rating</li>
-                            </ul>
-                        </div>
-                    </li>
+                    {{> albumListElementTemplate}}
                 {{/each}}
                 </ul>
             </div>
         </script>
 
-        <!-- Album - shows details about an individual album -->
-        <script id="album-template" type="text/x-handlebars">
-            <div class="album">
-                <div class="image image-300x300">&nbsp;</div>
-                <div class="details">
-                    <h3>{{title}}</h3>
+        <!-- Albums list element template -->
+        <script id="album-list-element-template" type="text/x-handlebars">
+            <li class='album-list-element'>
+                <div class="image image-120x120">&nbsp;</div>
+                <div class="album-details">
+                    <a albumId='{{id}}' href='#' class='album-link'>
+                        <h3>
+                        {{#if title}}
+                            {{title}}
+                        {{else}}
+                            Unknown Album
+                        {{/if}}
+                        {{#if artist}}
+                            &nbsp;-&nbsp;
+                            {{#if artist.name}}
+                                {{artist.name}}
+                            {{else}}
+                                Unknown Artist
+                            {{/if}}
+                        {{/if}}
+                        </h3>
+                    </a>
                     <ul>
-                        <li>Released in {{year}}</li>
-                        <li>{{label}} {{#if country}}({{country}}){{/if}}</li>
-                        <li>3.8 Average Rating</li>
+                        {{#if year}}
+                            <li>Released in {{year}}</li>
+                        {{/if}}
+                        {{#if label}}
+                            <li>{{label}} {{#if country}}({{country}}){{/if}}</li>
+                        {{/if}}
+                        {{#if numTracks}}
+                            <li>{{numTracks}} tracks</li>
+                        {{/if}}
                     </ul>
                 </div>
+            </li>
+        </script>
+
+        <!-- Album - shows details about an individual album -->
+        <script id="album-details-template" type="text/x-handlebars">
+            <div class="album-details">
+                <div class="image image-300x300">&nbsp;</div>
+                <div class="album-details">
+                    <h2>
+                        {{#if title}}
+                            {{title}}
+                        {{else}}
+                            Unknown Album
+                        {{/if}}
+                    </h2>
+                    {{#if artist}}
+                        <a artistId='{{artist.id}}' href='#' class='artist-link'>
+                            <h3>
+                                {{#if artist.name}}
+                                    {{artist.name}}
+                                {{else}}
+                                    Unknown Artist
+                                {{/if}}
+                            </h3>
+                        </a>
+                    {{/if}}
+                    <ul>
+                        {{#if year}}
+                            <li>Released in {{year}}</li>
+                        {{/if}}
+                        {{#if label}}
+                            <li>{{label}} {{#if country}}({{country}}){{/if}}</li>
+                        {{/if}}
+                        <li>
+                            <!-- TODO: replace this with a real calculation -->
+                            3.8 Average rating
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class='album-tracks'>
+                {{#if tracks}}
+                    <h3>Tracks:</h3>
+                    <table>
+                        <tbody>
+                            {{#each tracks}}
+                                <tr>
+                                    <td>{{tracknumber}}</td>
+                                    <td>{{title}}</td>
+                                    <td>{{timeFormat length}}</td>
+                                </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                {{/if}}
             </div>
         </script>
 

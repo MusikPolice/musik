@@ -1,16 +1,19 @@
+/* font sizes */
 h1 {
     font-size: 2em;
     font-weight: bold;
 }
-
+h2 {
+  font-size: 1.6em;
+  font-weight: bold;
+}
+h3 {
+  font-size: 1.3em;
+  font-weight: bold;
+}
 h1 small {
     font-size: 0.75em;
     font-weight: normal;
-}
-
-h2 {
-  font-size: 1.5em;
-  font-weight: bold;
 }
 
 a {
@@ -84,6 +87,10 @@ header ul.current-user li {
     margin-bottom: 20px;
     margin-top: 20px;
     min-height: 300px;
+
+    /* clears any floats so that footer is always pushed below all content */
+    overflow: auto;
+    width: 100%;
 }
 
 #content .login {
@@ -156,27 +163,76 @@ header ul.current-user li {
   width: 120px;
 }
 
-#content .artists li.artist, #content .albums li.album {
-  margin-top: 20px;
-  overflow: auto;
+/* artist lists */
+.artist-list-element {
+  position: relative;
+  height: 130px; /* image is 120px high, add 5px padding to top and bottom */
   width: 100%;
 }
-
-/* floats artist and album images to the left */
-#content .artist div.image, #content .album div.image {
-  float: left;
+.artist-list-element .image {
+  position: absolute;
+  top: 5px;
+  left: 0px;
+}
+.artist-list-element .artist-details {
+  position: absolute;
+  top: 5px;
+  left: 130px;
 }
 
-/* floats artist and album details to the left */
-#content .artist div.details, #content .album div.details {
-  float: left;
-  margin-left: 20px;
-  width: 600px;
+/* album lists */
+.album-list-element {
+  position: relative;
+  height: 130px; /* image is 120px high, add 5px padding to top and bottom */
+  width: 100%;
+}
+.album-list-element .image {
+  position: absolute;
+  top: 5px;
+  left: 0px;
+}
+.album-list-element .album-details {
+  position: absolute;
+  top: 5px;
+  left: 130px;
 }
 
-/* adds some vertical space between artist info sections */
-#content .artist .details .albums {
+/* artist details page */
+.artist-details .image {
+  float: left;
+  margin-right: 10px;
+}
+.artist-details .artist-details {
+  margin-bottom: 10px;
+}
+.artist-details .artist-details li {
+  display: inline-block;
+  margin-right: 10px;
+  text-align: left;
+}
+.artist-details .artist-bio {
+  margin-bottom: 10px;
+}
+
+/* album details page */
+.album-details {
+  /* this is a hack that makes the details appear beside the image */
+    width: 100%;
+    height: 300px;
+}
+.album-details .image {
+  float: left;
+  margin-right: 10px;
+}
+.album-tracks {
   margin-top: 20px;
+  width: 100%;
+}
+.album-tracks table {
+  width: 100%;
+}
+.album-tracks table td {
+  padding: 2px;
 }
 
 /* default image sizes - replace these with actual images once available */
