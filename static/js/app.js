@@ -9,62 +9,62 @@ var pageTemplate = null;
  * 
  */
 
-function getAlbums(callback) {
+ function getAlbums(callback) {
     $.get('http://localhost:8080/api/albums')
-        .done(function(data) {
-            callback(data);
-        })
-        .fail(function() {
-            console.log('GET request to /api/albums failed');
-        });
+    .done(function(data) {
+        callback(data);
+    })
+    .fail(function() {
+        console.log('GET request to /api/albums failed');
+    });
 }
 
 /**
  * Fetches the list of all artists from the server
  * The specified callback function will be called with the json object returned by the api on success
  */
-function getArtists(callback) {
+ function getArtists(callback) {
     $.get('http://localhost:8080/api/artists')
-        .done(function(data) {
-            callback(data);
-        })
-        .fail(function() {
-            console.log('GET request to /api/artists failed');
-        });
+    .done(function(data) {
+        callback(data);
+    })
+    .fail(function() {
+        console.log('GET request to /api/artists failed');
+    });
 }
 
 /**
  * Fetches the artist with the specified id from the server
  * The specified callback function will be called with the json object returned by the api on success
  */
-function getArtist(id, callback) {
+ function getArtist(id, callback) {
     $.get('http://localhost:8080/api/artists/id/' + id)
-        .done(function(data) {
-            callback(data);
-        })
-        .fail(function() {
-            console.log('GET request to /api/artists/id/' + id + ' failed');
-        });
+    .done(function(data) {
+        callback(data);
+    })
+    .fail(function() {
+        console.log('GET request to /api/artists/id/' + id + ' failed');
+    });
 }
 
 /**
  * Fetches the album with the specified id from the server
  * The specified callback function will be called with the json object returned by the api on success
  */
-function getAlbum(id, callback) {
+ function getAlbum(id, callback) {
     $.get('http://localhost:8080/api/albums/id/' + id)
-        .done(function(data) {
-            callback(data);
-        })
-        .fail(function() {
-            console.log('GET request to /api/albums/id/' + id + ' failed');
-        });
+    .done(function(data) {
+        callback(data);
+    })
+    .fail(function() {
+        console.log('GET request to /api/albums/id/' + id + ' failed');
+    });
 }
 
 /**
  * Resets all jQuery event handlers after every page render
  */
-function hookEventHandlers() {
+ function hookEventHandlers() {
     'use strict';
 
     $('a').off('click.musik.nav');
@@ -134,7 +134,7 @@ function hookEventHandlers() {
  * templateSelector: String - a jQuery selector for the template to be placed into the #content div of the page
  * params: Object - a map of values to be passed into the template at display time
  */
-function displayTemplate(templateSelector, params) {
+ function displayTemplate(templateSelector, params) {
     'use strict';
 
     console.log('Displaying ' + templateSelector);
@@ -155,7 +155,27 @@ function displayTemplate(templateSelector, params) {
     hookEventHandlers();
 }
 
+/**
+ * Initializes SoundManager2 so that we can play audio
+ */
+function initSoundManager2() {
+    soundManager.setup({
+        url: '/static/swf/',    //path to swf player in case html5 audio isn't supported
+        preferFlash: false,     //ignore Flash where possible, use 100% HTML5 mode
+        flashVersion: 9,        //if you must use flash, at least use flash 9
+        onready: function() {
+            //TODO: soundmanager is ready. do something about it
+            console.log("SoundManager2 is ready for use.");
+        },
+        ontimeout: function(status) {
+            //holy crap it broke!
+            console.log("Failed to load SoundManager2. Status is " + status.success + ", error type is " + status.error.type);
+        }
+    });
+}
+
 $(function() {
     'use strict';
+    initSoundManager2();
     displayTemplate('#nowplaying-template', {});    
 });
