@@ -4,11 +4,20 @@
 var pageTemplate = null;
 
 /**
+ * The currently playing sound object
+ */
+var nowplaying = null;
+
+/**
+ * True if shuffle play is on
+ */
+var shuffle = false;
+
+/**
  * Fetches the list of all albums from the server
  * The specified callback function will be called with json object returned by the api on success
  * 
  */
-
  function getAlbums(callback) {
     $.get('http://localhost:8080/api/albums')
     .done(function(data) {
@@ -112,6 +121,7 @@ var pageTemplate = null;
         });
     });
 
+    //album links
     $('.album-list-element a.album-link').on('click.musik.nav', function(event) {
         'use strict';
         event.preventDefault();
@@ -122,6 +132,20 @@ var pageTemplate = null;
             //we only needt he first result
             displayTemplate('#album-details-template', data[0]);
         });
+    });
+
+    //play track links
+    $('.album-tracks tr.track td.controls a').off('click.track.play');
+    $('.album-tracks tr.track td.controls a').on('click.track.play', function(event) {
+        'use strict';
+        event.preventDefault();
+
+        var trackId = $(this).parents('tr.track').attr('trackId');
+        var uri = '/api/stream/' + trackId;
+
+        //TODO: load this uri into soundmanager2
+        console.log("track stream url is " + uri);
+        playSong(uri);
     });
 
     console.log('reset event handlers');
@@ -168,8 +192,56 @@ function initSoundManager2() {
             console.log("SoundManager2 is ready for use.");
         },
         ontimeout: function(status) {
-            //holy crap it broke!
+            //this will be hit if SM2 is falling back to flash but flash is not enabled
+            //if the user then enables flash, onready will be hit
             console.log("Failed to load SoundManager2. Status is " + status.success + ", error type is " + status.error.type);
+        }
+    });
+}
+
+/*
+* Plays the specified song url
+*/
+function playSong(url) {
+    if (nowplaying != null) {
+        nowplaying.stop();
+        nowplaying.destruct();
+    }
+
+    //TODO: once multiple audio formats are supported, query SoundManager2 for the
+    // browser's supported formats and dynamically request the appropriate one.
+
+    nowplaying = soundManager.createSound({
+        autoLoad: true,
+        autoPlay: true,
+        id: 'nowplaying',
+        type: 'audio/ogg',
+        url: url,
+        onfinish: function() {
+            if (shuffle)
+            {
+                play_random();
+            }
+            else
+            {
+                //destroy the sound playpause-controlobject
+                $('#playpause-control').html('Play');
+                nowplaying.stop();
+                nowplaying.destruct();
+                nowplaying = null;
+            }
+        },
+        onpause: function() {
+            $('#playpause-control').html('Play');
+        },
+        onplay: function() {
+            $('#playpause-control').html('Pause');
+        },
+        onresume: function() {
+            $('#playpause-control').html('Pause');
+        },
+        onstop: function() {
+            $('#playpause-control').html('Play');
         }
     });
 }

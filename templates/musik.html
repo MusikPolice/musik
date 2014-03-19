@@ -43,7 +43,7 @@
                     </ul>
 
                     <ul class="player-controls">
-                        <li><a href='#'>Play</a></li>
+                        <li><a id="playpause-control" href='#'>Play</a></li>
                         <li><a href='#'>Skip</a></li>
                     </ul>
                 </nav>
@@ -318,10 +318,13 @@
                     <table>
                         <tbody>
                             {{#each tracks}}
-                                <tr>
-                                    <td>{{tracknumber}}</td>
-                                    <td>{{title}}</td>
-                                    <td>{{timeFormat length}}</td>
+                                <tr class="track" trackId="{{id}}">
+                                    <td class="number">{{tracknumber}}</td>
+                                    <td class="title">{{title}}</td>
+                                    <td class="length">{{timeFormat length}}</td>
+
+                                    <!-- TODO: style this -->
+                                    <td class="controls"><a href="#">Play</a></td>
                                 </tr>
                             {{/each}}
                         </tbody>
