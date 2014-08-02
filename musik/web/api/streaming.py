@@ -1,5 +1,5 @@
 from musik import log
-from musik import streaming
+from musik import audiotranscode
 from musik import db
 
 import cherrypy
@@ -31,18 +31,20 @@ class Track():
 			"""
 			try:
 				self.log.info(u'OggStream.track trying to open %s for streaming' % unicode(uri))
-				self.stream = streaming.audio_open(uri)
+				self.transcode = audiotranscode.AudioTranscode()
 
 				self.log.info(u'OggStream.track started streaming %s' % unicode(uri))
-				for block in self.stream:
-					yield block
-			except streaming.DecodeError as e:
+				for data in self.transcode.transcode_stream(uri,'ogg'):
+					yield data
+
+			except audiotranscode.TranscodeError as e:
 				self.log.error(u'Failed to open audio stream %s' % uri)
+			except audiotranscode.EncodeError as e:
+				self.log.error(u'Missing ogg encoder')
+			except audiotranscode.DecodeError as e:
+				self.log.error(u'Missing decoder for %s' % track.format)
 			finally:
 				self.log.info(u'OggStream.track streaming is complete. Closing stream.')
-				if self.stream is not None:
-					self.stream.close()
-					self.stream = None
 
 		return yield_data()
 	GET._cp_config = {'response.stream': True}

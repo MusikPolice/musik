@@ -71,6 +71,24 @@ var shuffle = false;
 }
 
 /**
+ * Sends the specified path to the server for importing.
+ * The path must exist on the server and the service must have read permissions
+ * at that path. The path can be a single file or a directory.
+ */
+function addMedia(p, callback) {
+    console.log('sending import request for path ' + p);
+
+    var json = {path: p};
+    $.post('http://localhost:8080/api/importer', json)
+    .done(function(data) {
+        callback(data);
+    })
+    .fail(function() {
+        console.log('POST request to /api/importer with path ' + p + ' failed');
+    });
+}
+
+/**
  * Resets all jQuery event handlers after every page render
  */
  function hookEventHandlers() {
@@ -146,6 +164,34 @@ var shuffle = false;
         //TODO: load this uri into soundmanager2
         console.log("track stream url is " + uri);
         playSong(uri);
+    });
+
+    //play-pause control
+    $('#playpause-control').on('click.track.play', function(event) {
+        'use strict';
+        event.preventDefault();
+
+        if (nowplaying != null) {
+            if (nowplaying.playState == 0) {
+                nowplaying.play();
+            } else if (nowplaying.playState == 1) {
+                if (nowplaying.paused) {
+                    nowplaying.resume();
+                } else {
+                    nowplaying.pause();
+                }
+            }
+        }
+    });
+
+    //TODO browse for folder button
+    //add media button
+    $('form#importmedia button.addmedia').off('click.import.media');
+    $('form#importmedia button.addmedia').on('click.import.media', function(event) {
+        'use strict';
+        event.preventDefault();
+        console.log('add media button clicked');
+        addMedia($('form#importmedia input#path').val())
     });
 
     console.log('reset event handlers');
