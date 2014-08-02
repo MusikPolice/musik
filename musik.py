@@ -5,6 +5,7 @@ import sys
 
 from musik import config
 from musik import log
+import musik.audiotranscode
 import musik.importer
 import musik.web
 
@@ -45,10 +46,26 @@ if __name__ == '__main__':
     for sig in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
         signal.signal(sig, cleanup)
 
+    # start worker threads
     log.info(u'Starting worker threads')
     importThread = musik.importer.ImportThread()
     importThread.start()
     threads.append(importThread)
+
+    # query audiotranscode for available codecs
+    transcode = musik.audiotranscode.AudioTranscode()
+    row_format = "{:>10}" * 3
+    log.info(u'Supported Encoders:')
+    log.info(row_format.format('ENCODER', 'INSTALLED', 'FILETYPE'))
+    for enc in transcode.Encoders:
+        avail = 'yes' if enc.available() else 'no'
+        log.info(row_format.format(enc.command[0], avail, enc.filetype))
+
+    log.info(u'Supported Decoders:')
+    log.info(row_format.format('ENCODER', 'INSTALLED', 'FILETYPE'))
+    for dec in transcode.Decoders:
+        avail = 'yes' if dec.available() else 'no'
+        log.info(row_format.format(dec.command[0], avail, dec.filetype))
 
     # this is a blocking call
     log.info(u'Starting Web App')

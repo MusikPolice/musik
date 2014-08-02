@@ -17,6 +17,7 @@ def get(section, option):
 	conf.set("General", "database_path", os.path.abspath(os.path.join(parent_directory, "musik.db")))
 	conf.set("General", "server_domain_name", "localhost")
 	conf.set("General", "server_port", "8080")
+	conf.set("General", "salt", "b1fb08282f4282b4700d")
 
 	conf.add_section("Logging")
 	conf.set("Logging", "log_to_console", "true")

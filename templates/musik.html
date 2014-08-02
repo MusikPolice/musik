@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Musik Ember.js App</title>
+        <meta name="author" content="MusikPolice">
+        <meta name="description" content="An implementation of Musik powered by jQuery and Handlebars">
+
+        <link rel="stylesheet" href="/static/styles/reset.css" />
+        <link rel="stylesheet" href="/static/styles/musik.css" />
+
+        <script src="/static/js/libs/jquery-2.0.3.js"></script>
+        <script src="/static/js/libs/handlebars-1.1.2.js"></script>
+        <script src="/static/js/libs/soundmanager-2.97a.js"></script>
+        <script src="/static/js/app.js"></script>
+        <script src="/static/js/helpers.js"></script>
+    </head>
+    <body>
+        <!-- application will be rendered inside of this div -->
+        <div id='wrapper'></div>
+
+        <!-- Main Application template. All other templates will be rendered inside of this one -->
+        <script id="page-template" type="text/x-handlebars">
+            <header>
+                <h1>MUSIK <small>The world&#39;s finest music player</small></h1>
+
+                <ul class="current-user">
+                    {{#if user}}
+                        <li><a href='#'>{{ user.username }}</a></li>
+                        <li><a href='#' id="logout">logout</a></li>
+                    {{else}}
+                        <li><a href='#'>Please log in</a></li>
+                    {{/if}}
+                </ul>
+
+                <nav class="navigation">
+                    <ul class="pages">
+                        <li><a href='#' class='nowplaying'>Now Playing</a></li>
+                        <li><a href='#' class='artists'>Artists</a></li>
+                        <li><a href='#' class='albums'>Albums</a></li>
+                        <li><a href='#' class='addmedia'>Add Media</a></li>
+                        <li><a href='#' class='search'>Search</a></li>
+                    </ul>
+
+                    <ul class="player-controls">
+                        <li><a id="playpause-control" href='#'>Play</a></li>
+                        <li><a href='#'>Skip</a></li>
+                    </ul>
+                </nav>
+            </header>
+
+            <!-- all other templates will be rendered inside of this div -->
+            <div id='content'></div>
+
+            <footer>
+                <p>&copy; <a href="http://github.com/MusikPolice/musik/" class="muted">MusikPolice</a> 2012</p>
+            </footer>
+        </script>
+
+        <!-- User Registration template -->
+        <script id="register-account-template" type="text/x-handlebars">
+            <div class='register'>
+                <h2>CREATE A NEW ACCOUNT</h2>
+                
+                {{#if error}}
+                <div class='error'>
+                    <p>{{error.message}}</p>
+                </div>
+                {{else}}
+                <p>Enter your credentials below.</p>
+                {{/if}}
+                
+                <form>
+                    <div>
+                        <label for="username">Username:</label>
+                        <input id="username" name="username" type="text">
+                    </div>
+                    <div>
+                        <label for="password">Password:</label>
+                        <input id="password" name="password" type="password">
+                    </div>
+                    <div>
+                        <label for="password2">Retype Password:</label>
+                        <input id="password2" name="password2" type="password">
+                    </div>
+
+                    <button type="submit" class="register">Create</button>
+                </form>
+                <p>If you already have an account, <a href='#'>log in</a>.</p>
+            </div>
+        </script>
+
+        <!-- Login Template -->
+        <script id="login-template" type="text/x-handlebars">
+            <div class='login'>
+                {{#if error}}
+                <h2>FAILBOATS AWAY!</h2>
+                <div class='error'>
+                    <p>{{error.message}}</p>
+                </div>
+                {{else}}
+                <h2>LOGIN TO LISTEN</h2>
+                <p>You&#39;ll need to log in to listen to your tunes.</p>
+                {{/if}}
+
+                <form>
+                    <div>
+                        <label for="username">Username:</label>
+                        <input id="username" name="username" type="text">
+                    </div>
+                    <div>
+                        <label for="password">Password:</label>
+                        <input id="password" name="password" type="password">
+                    </div>
+
+                    <button type="submit" class="login">Login</button>
+                </form>
+                <p>If you don&#39;t have an account, <a href='#'>register now</a>.</p>
+            </div>
+        </script>
+
+        <!-- Now Playing page - the currently playing song and queue -->
+        <script id="nowplaying-template" type="text/x-handlebars">
+            <div class='nowplaying'>
+                <h2>NOW PLAYING</h2>
+                <p>Eventually, this view will show the queue and the currently playing track with large obnoxious artwork.</p>
+            </div>
+        </script>
+
+        <!-- Artists - shows a list of artists in your library -->
+        <!-- TODO: rename to artist-list-template so that we can support a matrix view as well -->
+        <script id="artists-template" type="text/x-handlebars">
+            <div class="artists">
+                <h2>ARTISTS</h2>
+                <ul>
+                {{#each this}}
+                    {{> artistListElement}}
+                {{/each}}
+                </ul>
+            </div>
+        </script>
+
+        <!-- Artist List Element - shows an overview of the artist -->
+        <script id="artist-list-element-template" type="text/x-handlebars">
+            <li class='artist-list-element'>
+                <div class="image image-120x120">&nbsp;</div>
+                <div class="artist-details">
+                    <a artistId='{{id}}' href='#' class='artist-link'><h3>{{name}}</h3></a>
+                    <ul>
+                        <li>
+                            {{#if numTracks}}
+                                {{numTracks}} tracks
+                            {{else}}
+                                This artist doesn&#39;t have any tracks
+                            {{/if}}
+                        </li>
+                        <li>
+                            {{#if numAlbums}}
+                                {{numAlbums}} albums
+                            {{else}}
+                                This artist doesn&#39;t have any albums
+                            {{/if}}
+                        </li>
+                        <li>
+                            <!-- TODO: replace this with a real calculation -->
+                            3.8 Average rating
+                        </li>
+                    </ul>
+                </div>
+            </li>
+        </script>
+
+        <!-- Artist - shows details about an individual artist -->
+        <script id="artist-details-template" type="text/x-handlebars">
+            <div class="artist-details">
+                <div class="image image-300x300">&nbsp;</div>
+                <div class="artist-details">
+                    <h2>{{name}}</h2>
+                    <ul>
+                        {{#if musicbrainz_artistid}}
+                            <li>
+                                Musicbrainz id: {{musicbrainz_artistid}}
+                            </li>
+                        {{/if}}
+                        <li>
+                            {{#if numTracks}}
+                                {{numTracks}} tracks
+                            {{else}}
+                                This artist doesn&#39;t have any tracks
+                            {{/if}}
+                        </li>
+                        <li>
+                            {{#if numAlbums}}
+                                {{numAlbums}} albums
+                            {{else}}
+                                This artist doesn&#39;t have any albums
+                            {{/if}}
+                        </li>
+                        <li>
+                            <!-- TODO: replace this with a real calculation -->
+                            3.8 Average rating
+                        </li>
+                    </ul>
+                </div>
+                <div class="artist-bio">
+                    <h3>Bio:</h3>
+                    <!--TODO: this is placeholder text. Replace with real bios from last.fm -->
+                    <p>
+                            Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc,
+                    </p>
+                </div>
+                <div class="artist-albums">
+                    {{#if albums}}
+                        <h4>{{numAlbums}} ALBUMS</h4>
+                        <ul>
+                            {{#each albums}}
+                                {{> albumListElementTemplate}}
+                            {{else}}
+                                <li>This artist doesn&#39;t have any albums</li>
+                            {{/each}}
+                        </ul>
+                    {{else}}
+                        <p>This artist doesn&#39;t have any albums</p>
+                    {{/if}}
+                </div>
+            </div>
+        </script>
+
+        <!-- Albums - shows a list of albums in your library -->
+        <script id="albums-template" type="text/x-handlebars">
+            <div class="albums">
+                <h2>ALBUMS</h2>
+                <ul>
+                {{#each this}}
+                    {{> albumListElementTemplate}}
+                {{/each}}
+                </ul>
+            </div>
+        </script>
+
+        <!-- Albums list element template -->
+        <script id="album-list-element-template" type="text/x-handlebars">
+            <li class='album-list-element'>
+                <div class="image image-120x120">&nbsp;</div>
+                <div class="album-details">
+                    <a albumId='{{id}}' href='#' class='album-link'>
+                        <h3>
+                        {{#if title}}
+                            {{title}}
+                        {{else}}
+                            Unknown Album
+                        {{/if}}
+                        {{#if artist}}
+                            &nbsp;-&nbsp;
+                            {{#if artist.name}}
+                                {{artist.name}}
+                            {{else}}
+                                Unknown Artist
+                            {{/if}}
+                        {{/if}}
+                        </h3>
+                    </a>
+                    <ul>
+                        {{#if year}}
+                            <li>Released in {{year}}</li>
+                        {{/if}}
+                        {{#if label}}
+                            <li>{{label}} {{#if country}}({{country}}){{/if}}</li>
+                        {{/if}}
+                        {{#if numTracks}}
+                            <li>{{numTracks}} tracks</li>
+                        {{/if}}
+                    </ul>
+                </div>
+            </li>
+        </script>
+
+        <!-- Album - shows details about an individual album -->
+        <script id="album-details-template" type="text/x-handlebars">
+            <div class="album-details">
+                <div class="image image-300x300">&nbsp;</div>
+                <div class="album-details">
+                    <h2>
+                        {{#if title}}
+                            {{title}}
+                        {{else}}
+                            Unknown Album
+                        {{/if}}
+                    </h2>
+                    {{#if artist}}
+                        <a artistId='{{artist.id}}' href='#' class='artist-link'>
+                            <h3>
+                                {{#if artist.name}}
+                                    {{artist.name}}
+                                {{else}}
+                                    Unknown Artist
+                                {{/if}}
+                            </h3>
+                        </a>
+                    {{/if}}
+                    <ul>
+                        {{#if year}}
+                            <li>Released in {{year}}</li>
+                        {{/if}}
+                        {{#if label}}
+                            <li>{{label}} {{#if country}}({{country}}){{/if}}</li>
+                        {{/if}}
+                        <li>
+                            <!-- TODO: replace this with a real calculation -->
+                            3.8 Average rating
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class='album-tracks'>
+                {{#if tracks}}
+                    <h3>Tracks:</h3>
+                    <table>
+                        <tbody>
+                            {{#each tracks}}
+                                <tr class="track" trackId="{{id}}">
+                                    <td class="number">{{tracknumber}}</td>
+                                    <td class="title">{{title}}</td>
+                                    <td class="length">{{timeFormat length}}</td>
+
+                                    <!-- TODO: style this -->
+                                    <td class="controls"><a href="#">Play</a></td>
+                                </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                {{/if}}
+            </div>
+        </script>
+
+        <!-- Add Media - allows you to add media to your library -->
+        <script id="addmedia-template" type="text/x-handlebars">
+            <div class="addmedia">
+                <h2>IMPORT MEDIA</h2>
+                <p>Need to add some music to your library? This is the place to do it.</p>
+
+                {{#if error}}
+                <div class='error'>
+                    <p>{{error.message}}</p>
+                </div>
+                {{/if}}
+
+                {{#if success}}
+                <div class='success'>
+                    <p>Hooray!</p>
+                </div>
+                {{/if}}
+
+                <form id="importmedia">
+                    <div class="inputs">
+                        <label for="path">Path:</label>
+                        <input id="path" name="path" type="text">
+                    </div>
+                    <div class="buttons">
+                        <button class="browse">Browse</button>
+                        <button class="addmedia">Import Music</button>
+                    </div>
+                </form>
+            </div>
+        </script>
+    </body>
+</html>

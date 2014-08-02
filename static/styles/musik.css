@@ -1,0 +1,273 @@
+/* font sizes */
+h1 {
+    font-size: 2em;
+    font-weight: bold;
+}
+h2 {
+  font-size: 1.6em;
+  font-weight: bold;
+}
+h3 {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+h1 small {
+    font-size: 0.75em;
+    font-weight: normal;
+}
+
+a {
+    color: #0084B4;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #0084B4;
+    text-decoration: underline;
+}
+
+#wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 50px;
+    width: 960px;
+}
+
+header {
+  border-bottom: 1px solid #eee;
+  padding: 0 0 10px 0;
+  margin: 10px 0 0 0;
+  position: relative;
+}
+
+header h1 {
+    margin-bottom: 20px;
+}
+
+header nav {
+    position: relative;
+}
+
+header nav li {
+  display: inline-block;
+  margin-left: 20px;
+  text-align: right;
+}
+
+header nav ul.pages li {
+  margin-left: 0px;
+  margin-right: 20px;
+  text-align: left;
+}
+
+header nav .player-controls {
+  bottom: 0px;
+  position: absolute;
+  right: 0px;
+}
+
+header nav .player-controls a {
+  text-align: right;
+}
+
+header ul.current-user {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+}
+
+header ul.current-user li {
+  font-size: 0.8em;
+  display: inline-block;
+  margin-left: 10px;
+  text-align: right;
+}
+
+#content {
+    margin-bottom: 20px;
+    margin-top: 20px;
+    min-height: 300px;
+
+    /* clears any floats so that footer is always pushed below all content */
+    overflow: auto;
+    width: 100%;
+}
+
+#content .login {
+  margin: auto;
+  width: 300px;
+}
+#content .login form {
+  margin-bottom: 10px;
+}
+#content .login form label {
+  display: inline-block;
+  width: 80px;
+}
+#content .login form input {
+  display: inline;
+  margin-top: 10px;
+  width: 210px;
+}
+#content .login form button {
+  margin-left: 220px;
+  margin-top: 10px;
+  width: 80px;
+}
+
+#content .register {
+  margin: auto;
+  width: 320px;
+}
+#content .register form {
+  margin-bottom: 10px;
+}
+#content .register form label {
+  display: inline-block;
+  width: 130px;
+}
+#content .register form input {
+  display: inline;
+  margin-top: 10px;
+  width: 170px;
+}
+#content .register form button {
+  margin-left: 230px;
+  margin-top: 10px;
+  width: 80px;
+}
+
+#content .addmedia form label {
+  display: inline-block;
+  width: 50px;
+}
+#content .addmedia form input {
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+#content .addmedia form input[type=text] {
+  width: 320px;
+}
+#content .addmedia #importmedia .inputs {
+  float: left;
+  width: 380px;
+}
+#content .addmedia #importmedia .buttons {
+  float: left;
+  margin-left: 10px;
+  margin-top: 10px;
+  width: 130px;
+}
+#content .addmedia form button {
+  display: block;
+  width: 120px;
+}
+
+/* artist lists */
+.artist-list-element {
+  position: relative;
+  height: 130px; /* image is 120px high, add 5px padding to top and bottom */
+  width: 100%;
+}
+.artist-list-element .image {
+  position: absolute;
+  top: 5px;
+  left: 0px;
+}
+.artist-list-element .artist-details {
+  position: absolute;
+  top: 5px;
+  left: 130px;
+}
+
+/* album lists */
+.album-list-element {
+  position: relative;
+  height: 130px; /* image is 120px high, add 5px padding to top and bottom */
+  width: 100%;
+}
+.album-list-element .image {
+  position: absolute;
+  top: 5px;
+  left: 0px;
+}
+.album-list-element .album-details {
+  position: absolute;
+  top: 5px;
+  left: 130px;
+}
+
+/* artist details page */
+.artist-details .image {
+  float: left;
+  margin-right: 10px;
+}
+.artist-details .artist-details {
+  margin-bottom: 10px;
+}
+.artist-details .artist-details li {
+  display: inline-block;
+  margin-right: 10px;
+  text-align: left;
+}
+.artist-details .artist-bio {
+  margin-bottom: 10px;
+}
+
+/* album details page */
+.album-details {
+  /* this is a hack that makes the details appear beside the image */
+    width: 100%;
+    height: 300px;
+}
+.album-details .image {
+  float: left;
+  margin-right: 10px;
+}
+.album-tracks {
+  margin-top: 20px;
+  width: 100%;
+}
+.album-tracks table {
+  width: 100%;
+}
+.album-tracks table td {
+  padding: 2px;
+}
+
+/* default image sizes - replace these with actual images once available */
+#content .image-120x120 {
+  background-color: gray;
+  border: 1px solid black;
+  height: 120px;
+  width: 120px;
+}
+#content .image-300x300 {
+  background-color: gray;
+  border: 1px solid black;
+  height: 300px;
+  width: 300px;
+}
+
+#content .success {
+  background-color: #04B200;
+  color: #FFFFFF;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding: 5px;
+  text-align: center;
+}
+#content .error {
+  background-color: #B25000;
+  color: #FFFFFF;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding: 5px;
+  text-align: center;
+}
+
+footer {
+  color: #9A9EA8;
+  border-top: 1px solid #eee;
+  padding: 10px 0 0 0;
+}
