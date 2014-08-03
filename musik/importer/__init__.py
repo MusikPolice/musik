@@ -565,11 +565,11 @@ class ImportThread(threading.Thread):
             if disc != None:
                 self.log.info(u'Disc album/number search found existing disc %s in database' % disc)
                 if discsubtitle != '':
-                    if disc.discsubtitle == None:
-                        disc.discsubtitle = discsubtitle
-                    elif disc.discsubtitle != discsubtitle:
+                    if disc.disc_subtitle == None:
+                        disc.disc_subtitle = discsubtitle
+                    elif disc.disc_subtitle != discsubtitle:
                         # TODO: conflict -> schedule musicbrainz task!
-                        self.log.warning(u'Disc subtitle conflict for disc %s: %s != %s' % (disc, disc.discsubtitle, discsubtitle))
+                        self.log.warning(u'Disc subtitle conflict for disc %s: %s != %s' % (disc, disc.disc_subtitle, discsubtitle))
                 if num_tracks != 0:
                     if disc.num_tracks == None:
                         disc.num_tracks = num_tracks
@@ -582,7 +582,7 @@ class ImportThread(threading.Thread):
                 if album != None:
                     disc.album = album
                 if discsubtitle != '':
-                    disc.discsubtitle = discsubtitle
+                    disc.disc_subtitle = discsubtitle
                 if num_tracks != 0:
                     disc.num_tracks = num_tracks
                 self.log.info(u'Could not find disc in database. Created new disc %s' % disc)
