@@ -361,6 +361,7 @@ class Track(Base):
     # custom fields
     playcount = Column(Integer)                                 # number of times the track was played
     rating = Column(Integer)                                    # rating of the track (0-255)
+    mimetype = Column(String)                                   # IANA mimetype of the file
 
     # relationships
     album = relationship('Album', backref=backref('tracks', order_by=tracknumber))

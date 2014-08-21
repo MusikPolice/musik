@@ -103,6 +103,7 @@ class ImportThread(threading.Thread):
                         self.log.info(u'Ignoring file %s' % newuri)
         return True
 
+
     def is_mime_type_supported(self, uri):
         """Takes a guess at the mimetype of the file at the specified uri.
         Returns True if the mimetype could be inferred and file contains audio
@@ -110,6 +111,13 @@ class ImportThread(threading.Thread):
         not the file actually exists."""
         (mimetype, encoding) = mimetypes.guess_type(uri)
         return mimetype is not None and mimetype.startswith('audio')
+
+
+    def guess_mime_type(self, uri):
+        """Returns the mimetype string of the file at the specified uri or None"""
+        (mimetype, encoding) = mimetypes.guess_type(uri)
+        return mimetype
+
 
     def import_file(self, uri):
         """Adds the specified file to the library.
@@ -314,6 +322,9 @@ class ImportThread(threading.Thread):
             elif track.tracknumber != metadata.track:
                 # TODO: conflict!
                 self.log.warning(u'Track tracknumber conflict for track %s: %d != %d' % (track.uri, track.tracknumber, metadata.track))
+
+        # mime type
+        track.mimetype = self.guess_mime_type(uri)
 
         # if we couldn't determine track, album, artist from metadata, try to snag it from the path
         # track name = file name
