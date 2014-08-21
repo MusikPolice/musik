@@ -9,14 +9,31 @@ var pageTemplate = null;
 var nowplaying = null;
 
 /**
- * True if shuffle play is on
+ * True if both the server and SM2 support audio/ogg vorbis
  */
-var shuffle = false;
+var canPlayVorbis = false;
+
+/**
+ * True if both the server and SM2 support audio/mpeg mp3
+ */
+var canPlayMp3 = false;
+
+/**
+ * Fetches the list of mime types that the server is capable of encoding to
+ */
+function getEncoderMimeTypes(callback) {
+    $.get('http://localhost:8080/api/stream/encoders')
+    .done(function(data) {
+        callback(JSON.parse(data));
+    })
+    .fail(function() {
+        console.log('GET request to /api/stream/encoders failed');
+    })
+}
 
 /**
  * Fetches the list of all albums from the server
  * The specified callback function will be called with json object returned by the api on success
- * 
  */
  function getAlbums(callback) {
     $.get('http://localhost:8080/api/albums')
@@ -159,11 +176,9 @@ function addMedia(p, callback) {
         event.preventDefault();
 
         var trackId = $(this).parents('tr.track').attr('trackId');
-        var uri = '/api/stream/' + trackId;
+        var mimeType = $(this).attr('type')
 
-        //TODO: load this uri into soundmanager2
-        console.log("track stream url is " + uri);
-        playSong(uri);
+        playSong(trackId, mimeType);
     });
 
     //play-pause control
@@ -226,16 +241,29 @@ function addMedia(p, callback) {
 }
 
 /**
- * Initializes SoundManager2 so that we can play audio
+ * Initializes SoundManager2 so that we can play audio.
+ * Along the way, this method finds the intersection of the types of audio that the server can
+ * encode and the types of audio that SM2 can decode and sets the global canPlayMp3 and canPlayVorbis
+ * fields so that we can select a compromise encoding when the native type of an audio file is not supported.
+ *
+ * mimeTypes: a list of mime type strings indicating the audio types that the server can encode to
  */
-function initSoundManager2() {
+function initSoundManager2(mimeTypes) {
     soundManager.setup({
         url: '/static/swf/',    //path to swf player in case html5 audio isn't supported
-        preferFlash: false,     //ignore Flash where possible, use 100% HTML5 mode
+        preferFlash: true,      //ignore Flash where possible, use 100% HTML5 mode
         flashVersion: 9,        //if you must use flash, at least use flash 9
         onready: function() {
-            //TODO: soundmanager is ready. do something about it
-            console.log("SoundManager2 is ready for use.");
+            //SM2 is ready. check to see if browser supports each of the server's supported mime types
+            // we only really care about ogg vorbis and mp3. everything else is impractical for streaming
+            mimeTypes.forEach(function(mimeType) {
+                if (mimeType === 'audio/mpeg' && soundManager.canPlayMIME(mimeType)) {
+                    canPlayMp3 = true;
+                }
+                if (mimeType === 'audio/ogg' && soundManager.canPlayMIME(mimeType)) {
+                    canPlayVorbis = true;
+                }
+            });
         },
         ontimeout: function(status) {
             //this will be hit if SM2 is falling back to flash but flash is not enabled
@@ -245,37 +273,61 @@ function initSoundManager2() {
     });
 }
 
-/*
-* Plays the specified song url
-*/
-function playSong(url) {
+/**
+ * Stops the currently playing song, destructs the song object, and sets it to null
+ */
+function stopSong() {
     if (nowplaying != null) {
         nowplaying.stop();
         nowplaying.destruct();
+        nowplaying = null;
+    }
+}
+
+/*
+* Plays the specified song
+* trackId: the unique identifier of the track to play
+* mimeType: the mime type of the track if known, else null
+* returns false on error
+*/
+function playSong(trackId, mimeType) {
+    //make sure we're initialized
+    if (!soundManager.ok()) {
+        return false;
     }
 
-    //TODO: once multiple audio formats are supported, query SoundManager2 for the
-    // browser's supported formats and dynamically request the appropriate one.
+    //stop currently playing song if necessary
+    stopSong();
 
+    console.log('Native mime type of file is ' + mimeType);
+    if (mimeType === null || soundManager.canPlayMIME(mimeType) === false) {
+        // we either don't know the mime type of the file or we can't play it, try to get it transcoded
+        if (canPlayVorbis) {
+            mimeType = 'audio/ogg';
+        } else if (canPlayMp3) {
+            mimeType = 'audio/mpeg';
+        } else {
+            console.error('Native mime type of file is not supported and no compromise format could be selected.');
+            return false;
+        }
+        console.log('Native mime type of file is not supported. Requesting ' + mimeType + ' instead.');
+    }
+
+    //assemble the uri of the track
+    var uri = '/api/stream/' + trackId + '/' + mimeType.split('/')[1];
+    console.log('Loading ' + uri);
+
+    //play the requested song
     nowplaying = soundManager.createSound({
         autoLoad: true,
         autoPlay: true,
         id: 'nowplaying',
-        type: 'audio/ogg',
-        url: url,
+        type: mimeType,
+        url: uri,
         onfinish: function() {
-            if (shuffle)
-            {
-                play_random();
-            }
-            else
-            {
-                //destroy the sound playpause-controlobject
-                $('#playpause-control').html('Play');
-                nowplaying.stop();
-                nowplaying.destruct();
-                nowplaying = null;
-            }
+            //destroy the sound
+            $('#playpause-control').html('Play');
+            stopSong();
         },
         onpause: function() {
             $('#playpause-control').html('Play');
@@ -294,6 +346,11 @@ function playSong(url) {
 
 $(function() {
     'use strict';
-    initSoundManager2();
+
+    //fetch the mime types that the server can encode to 
+    //and pass them to the sound manager initialization
+    getEncoderMimeTypes(initSoundManager2);
+
+    //show the home page
     displayTemplate('#nowplaying-template', {});    
 });

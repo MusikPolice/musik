@@ -3,48 +3,127 @@ from musik import audiotranscode
 from musik import db
 
 import cherrypy
+import json
+
+
+class DecoderEnumerator():
+	"""Functions for enumerating the decoders that the server supports"""
+	exposed=True
+
+	def GET(self):
+		"""Returns an array of audio mime types that the server can decode audio files from"""
+		transcode = audiotranscode.AudioTranscode()
+		mimetypes = []
+		for dec in transcode.Decoders:
+			if dec.available():
+				mimetypes.append(audiotranscode.MIMETYPES[dec.filetype])
+		return json.dumps(mimetypes)
+
+
+class EncoderEnumerator():
+	"""Functions for enumerating the encoders that the server supports"""
+	exposed=True
+
+	def GET(self):
+		"""Returns an array of audio mime types that the server can encode audio files to"""
+		transcode = audiotranscode.AudioTranscode()
+		mimetypes = []
+		for enc in transcode.Encoders:
+			if enc.available():
+				mimetypes.append(audiotranscode.MIMETYPES[enc.filetype])
+		return json.dumps(mimetypes)
+
 
 class Track():
-	log = None
+	"""Functions for streaming single audio tracks"""
 	exposed = True
-	stream = None
+	decoders = DecoderEnumerator()
+	encoders = EncoderEnumerator()
+	log = None
 
 	def __init__(self):
 		self.log = log.Log(__name__)
 
-	def GET(self, id):
-		"""Transcodes the track with the specified unique id to ogg vorbis and
-		streams it to the client. Streaming begins immediately, even if the
-		entire file has not yet been transcoded."""
+
+	def readStream(self, uri):
+		"""Reads the file at the specified uri and returns its contents as a stream.
+		* uri: the uri of the file to read
+		This function will immediately begin to return bytes before the entire file has
+		been consumed.
+		"""
+		self.log.info(u'Started streaming %s without transcoding' % unicode(uri))
+		with open(uri, 'rb') as f:
+			while True:
+				chunk = f.read(1024)
+				if chunk:
+					for b in chunk:
+						yield b
+				else:
+					break
+
+
+	def transcodeStream(self, uri, mimetype, targetFormat, targetMimeType):
+		"""Reads the file at the specified uri, transcodes it into the targetFormat (a short-hand
+		version of targetMimeType), and yields the data out as it's ready.
+		* uri: The uri of the file to transcode.
+		* mimetype: the mime type of the file. Used for logging.
+		* targetFormat: the target format. One of mp3, ogg, flac, aac, m4a, or wav.
+		* targetMimeType: the target mime type. Must match targetFormat. Used for logging.
+		NOTE: this function silently eats exceptions, which will just cause the
+		audio stream to end, and the client player to choke. Ideally, we would notify
+		the user of the error as well.
+		"""
+		try:
+			transcode = audiotranscode.AudioTranscode()
+
+			self.log.info(u'Started streaming %s as %s' % (unicode(uri), targetMimeType))
+			for data in transcode.transcode_stream(uri, targetFormat):
+				yield data
+
+		except audiotranscode.TranscodeError as e:
+			self.log.error(u'Failed to open audio stream %s' % uri)
+		except audiotranscode.EncodeError as e:
+			self.log.error(u'Missing encoder for %s' % targetMimeType)
+		except audiotranscode.DecodeError as e:
+			self.log.error(u'Missing decoder for %s' % mimetype)
+		finally:
+			self.log.info(u'Streaming is complete. Closing stream.')
+
+
+	def GET(self, id, accept=None):
+		"""Transcodes the track with the specified unique id to the specified accept type and
+		streams it to the client. 
+		* id: the unique identifier of a track in the database
+		* accept: the target format. One of mp3, ogg, flac, aac, m4a, or wav. 
+		If accept is undefined or matches the native type of the file, no transcoding will take place.
+		Streaming begins immediately, even if the entire file has not yet been transcoded.
+		"""
 
 		# look up the track in the database
-		self.log.info(u'OggStream.track called with id %s' % unicode(id))
 		track = cherrypy.request.db.query(db.Track).filter(db.Track.id == id).first()
 		uri = track.uri
 
-		cherrypy.response.headers['Content-Type'] = 'audio/ogg'
+		targetFormat = None
+		targetMimeType = None
 
-		def yield_data():
-			"""TODO: this function silently eats exceptions, which will just cause the
-			audio stream to end, and the client player to choke. Ideally, we would notify
-			the user of the error as well.
-			"""
-			try:
-				self.log.info(u'OggStream.track trying to open %s for streaming' % unicode(uri))
-				self.transcode = audiotranscode.AudioTranscode()
+		if accept != None:
+			# convert the accept type into a target file type format that audiotranscode understands
+			for key, value in audiotranscode.MIMETYPES.iteritems():
+				if (value.endswith(accept)):
+					targetFormat = key
+					targetMimeType = value
 
-				self.log.info(u'OggStream.track started streaming %s' % unicode(uri))
-				for data in self.transcode.transcode_stream(uri,'ogg'):
-					yield data
+			if targetFormat == None:
+				self.log.error(u'Unsupported accept type specified: %s' % accept)
+				return
 
-			except audiotranscode.TranscodeError as e:
-				self.log.error(u'Failed to open audio stream %s' % uri)
-			except audiotranscode.EncodeError as e:
-				self.log.error(u'Missing ogg encoder')
-			except audiotranscode.DecodeError as e:
-				self.log.error(u'Missing decoder for %s' % track.format)
-			finally:
-				self.log.info(u'OggStream.track streaming is complete. Closing stream.')
+		# if accept wasn't specified or matches original encoding, no need to transcode
+		if accept == None or targetMimeType == track.mimetype:
+			cherrypy.response.headers['Content-Type'] = track.mimetype
+			return self.readStream(uri)
 
-		return yield_data()
+		# otherwise, go ahead and transcode into the desired format
+		cherrypy.response.headers['Content-Type'] = targetMimeType
+		return self.transcodeStream(uri, track.mimetype, targetFormat, targetMimeType)
+
 	GET._cp_config = {'response.stream': True}
