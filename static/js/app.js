@@ -4,6 +4,15 @@
 var pageTemplate = null;
 
 /**
+ * Details about the currently logged in user
+ */
+var user = {
+    username: null,
+    sessionToken: null,
+    expiry: null
+};
+
+/**
  * The currently playing sound object
  */
 var nowplaying = null;
@@ -112,6 +121,30 @@ function addMedia(p, callback) {
     'use strict';
 
     $('a').off('click.musik.nav');
+
+    // is user logged in?
+    $('header .current-user li').hide();
+    if (user.sessionToken === null) {
+        $('header .current-user li.logged-out').show();
+
+        //TODO: force display of login template if user is not logged in
+        
+    } else {
+        $('header .current-user li.logged-in a.username').html(user.username);
+        $('header .current-user li.logged-in').show();
+    }
+
+    // login/register click handlers
+    $('header .current-user a.login').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+        displayTemplate('#login-template', {});
+    });
+    $('header .current-user a.logout').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+        displayTemplate('#login-template', {});
+    });
 
     //nav toolbar links
     $('nav.navigation a.nowplaying').on('click.musik.nav', function(event) {
@@ -225,11 +258,12 @@ function addMedia(p, callback) {
     console.log('Displaying ' + templateSelector);
 
     //only keep one compiled copy of the page template on hand
+    //TODO: make pageTemplate a hash table keyed on templateSelector for efficiency++
     if (pageTemplate === null) {
         pageTemplate = Handlebars.compile($('#page-template').html());
     }
 
-    //TODO: any template info that the header needs must be fetched here
+    //render the page wrapper - includes header, nav bar, login controls, etc
     $('#wrapper').html(pageTemplate({}));
 
     //build the requested template and dump it into the page contents block

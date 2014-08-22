@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Musik Ember.js App</title>
+        <title>Musik</title>
         <meta name="author" content="MusikPolice">
         <meta name="description" content="An implementation of Musik powered by jQuery and Handlebars">
 
@@ -25,12 +25,9 @@
                 <h1>MUSIK <small>The world&#39;s finest music player</small></h1>
 
                 <ul class="current-user">
-                    {{#if user}}
-                        <li><a href='#'>{{ user.username }}</a></li>
-                        <li><a href='#' id="logout">logout</a></li>
-                    {{else}}
-                        <li><a href='#'>Please log in</a></li>
-                    {{/if}}
+                    <li class="logged-in"><a class="username" href='#'></a></li>
+                    <li class="logged-in"><a class="logout" href='#'>logout</a></li>
+                    <li class="logged-out"><a class="login" href='#'>log in/register</a></li>
                 </ul>
 
                 <nav class="navigation">
@@ -99,8 +96,7 @@
                     <p>{{error.message}}</p>
                 </div>
                 {{else}}
-                <h2>LOGIN TO LISTEN</h2>
-                <p>You&#39;ll need to log in to listen to your tunes.</p>
+                <h2>LOG IN TO LISTEN</h2>
                 {{/if}}
 
                 <form>
@@ -115,7 +111,7 @@
 
                     <button type="submit" class="login">Login</button>
                 </form>
-                <p>If you don&#39;t have an account, <a href='#'>register now</a>.</p>
+                <p>Need an account? <a href='#'>Register now</a>.</p>
             </div>
         </script>
 
