@@ -95,9 +95,10 @@ header ul.current-user li {
 
 #content .login {
   margin: auto;
-  width: 300px;
+  width: 235px;
 }
 #content .login form {
+  display: block;
   margin-bottom: 10px;
   position: relative;
 }
@@ -107,7 +108,7 @@ header ul.current-user li {
   margin-top: 10px;
 }
 #content .login form input {
-  width: 210px;
+  width: 225px;
 }
 #content .login form button {
   margin-top: 10px;
@@ -115,13 +116,21 @@ header ul.current-user li {
   right: 0px;
   width: 80px;
 }
+#content .login p {
+  font-size: 0.9em;
+  position: absolute;
+  text-align: center;
+  top: 135px;
+  width: 235px;
+}
 
 #content .register {
   margin: auto;
-  width: 320px;
+  width: 330px;
 }
 #content .register form {
   margin-bottom: 10px;
+  position: relative;
 }
 #content .register form label {
   color: #666666;
@@ -131,12 +140,21 @@ header ul.current-user li {
 }
 #content .register form input {
   display: inline;
-  width: 170px;
+  width: 185px;
 }
 #content .register form button {
   margin-left: 230px;
   margin-top: 10px;
+  position: absolute;
+  right: 0px;
   width: 80px;
+}
+#content .register form p {
+  position: absolute;
+  top: 135px;
+  width: 330px;
+  text-align: center;
+  font-size: 0.9em;
 }
 
 #content .addmedia form label {

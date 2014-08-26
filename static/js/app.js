@@ -128,7 +128,7 @@ function addMedia(p, callback) {
         $('header .current-user li.logged-out').show();
 
         //TODO: force display of login template if user is not logged in
-        
+
     } else {
         $('header .current-user li.logged-in a.username').html(user.username);
         $('header .current-user li.logged-in').show();
@@ -145,9 +145,24 @@ function addMedia(p, callback) {
         event.preventDefault();
         displayTemplate('#login-template', {});
     });
+    $('#content .login a.register').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+        displayTemplate('#register-template', {});
+    });
+    $('#content .register a.login').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+        displayTemplate('#login-template', {});
+    });
 
     //nav toolbar links
-    $('nav.navigation a.nowplaying').on('click.musik.nav', function(event) {
+
+$('#content .login a.register').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+        displayTemplate('#register-template', {});
+    });    $('nav.navigation a.nowplaying').on('click.musik.nav', function(event) {
         'use strict'; 
         event.preventDefault();
         displayTemplate('#nowplaying-template', {});
