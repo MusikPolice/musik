@@ -106,7 +106,7 @@ class WebService(object):
             },
             '/stream': {
                 # anybody can request a list of the available encoders or stream any song file
-                # TODO: this could be considered a security hole. Consider requiring authorization
+                # TODO: this could be considered a security hole. See https://github.com/MusikPolice/musik/issues/54
                 'tools.authorize.on': False,
             }
         }
