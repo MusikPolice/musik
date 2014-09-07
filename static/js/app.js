@@ -6,11 +6,7 @@ var pageTemplate = null;
 /**
  * Details about the currently logged in user
  */
-var user = {
-    username: null,
-    sessionToken: null,
-    expiry: null
-};
+var user = null;
 
 /**
  * The currently playing sound object
@@ -28,7 +24,20 @@ var canPlayVorbis = false;
 var canPlayMp3 = false;
 
 /**
- * Fetches the list of mime types that the server is capable of encoding to
+ * Computes a basic authorization header value based on the global user object.
+ * If the global user object is not set, displays the login template
+ */
+function getBasicAuthHeader() {
+    if (user == null || user.username == null || user.sessionToken == null) {
+        displayTemplate('#login-template', {error: 'Session expired.'});
+        return null;
+    }
+    return 'Basic ' + btoa(unescape(encodeURIComponent(user.username + ':' + user.sessionToken)));
+}
+
+/**
+ * Fetches the list of mime types that the server is capable of encoding to.
+ * Note: This is done pre-auth, so no need for the authorization header to be included
  */
 function getEncoderMimeTypes(callback) {
     $.get('http://localhost:8080/api/stream/encoders')
@@ -45,7 +54,13 @@ function getEncoderMimeTypes(callback) {
  * The specified callback function will be called with json object returned by the api on success
  */
  function getAlbums(callback) {
-    $.get('http://localhost:8080/api/albums')
+    $.ajax('http://localhost:8080/api/albums', {
+        contentType: 'application/json',
+        headers: {
+            Authorization: getBasicAuthHeader()
+        },
+        type: 'GET'
+    })
     .done(function(data) {
         callback(data);
     })
@@ -59,7 +74,13 @@ function getEncoderMimeTypes(callback) {
  * The specified callback function will be called with the json object returned by the api on success
  */
  function getArtists(callback) {
-    $.get('http://localhost:8080/api/artists')
+    $.ajax('http://localhost:8080/api/artists', {
+        contentType: 'application/json',
+        headers: {
+            Authorization: getBasicAuthHeader()
+        },
+        type: 'GET'
+    })
     .done(function(data) {
         callback(data);
     })
@@ -73,7 +94,13 @@ function getEncoderMimeTypes(callback) {
  * The specified callback function will be called with the json object returned by the api on success
  */
  function getArtist(id, callback) {
-    $.get('http://localhost:8080/api/artists/id/' + id)
+    $.ajax('http://localhost:8080/api/artists/id/' + id, {
+        contentType: 'application/json',
+        headers: {
+            Authorization: getBasicAuthHeader()
+        },
+        type: 'GET'
+    })
     .done(function(data) {
         callback(data);
     })
@@ -87,7 +114,13 @@ function getEncoderMimeTypes(callback) {
  * The specified callback function will be called with the json object returned by the api on success
  */
  function getAlbum(id, callback) {
-    $.get('http://localhost:8080/api/albums/id/' + id)
+    $.ajax('http://localhost:8080/api/albums/id/' + id, {
+        contentType: 'application/json',
+        headers: {
+            Authorization: getBasicAuthHeader()
+        },
+        type: 'GET'
+    })
     .done(function(data) {
         callback(data);
     })
@@ -103,15 +136,139 @@ function getEncoderMimeTypes(callback) {
  */
 function addMedia(p, callback) {
     console.log('sending import request for path ' + p);
-
-    var json = {path: p};
-    $.post('http://localhost:8080/api/importer', json)
+    var request = {path: p};
+    $.ajax('http://localhost:8080/api/importer', {
+        contentType: 'application/json',
+        data: request,
+        dataType: 'json',
+        headers: {
+            Authorization: getBasicAuthHeader()
+        },
+        processData: false,
+        type: 'POST'
+    })
     .done(function(data) {
         callback(data);
     })
     .fail(function() {
         console.log('POST request to /api/importer with path ' + p + ' failed');
     });
+}
+
+/**
+ * Creates a new user account with the specified username and password
+ * shows the login template with username populated if the operation succeeds
+ * shows the registration template with username populated and an error message if the operation fails
+ */
+function registerNewAccount(username, password) {
+    console.log('attempting to register a new user account for ' + username);
+    var request = JSON.stringify({username: username, token: password});
+    $.ajax('http://localhost:8080/api/users', {
+        contentType: 'application/json',
+        data: request,
+        dataType: 'json',
+        processData: false,
+        type: 'POST'
+    })
+    .done(function(data) {
+        // account registered, now log in
+        displayTemplate('#login-template', {username: username, message: 'Account registered. Log in to listen'});
+    })
+    .fail(function() {
+        // failed. try again
+        displayTemplate('#register-template', {username: username, error:'Account creation failed'});
+    });
+}
+
+/**
+ * Validates the username and password fields of the registration form.
+ * If form contents are valid, returns an object with a populated username and password field.
+ * Otherwise, register-template is displayed with an error message and false is returned
+ */
+function validateRegistrationForm() {
+    var username = $('#content .register input#username').val();
+    var password = $('#content .register input#password').val();
+    var password2 = $('#content .register input#password2').val();
+
+    if (username === null || username.trim().length === 0) {
+        displayTemplate('#register-template', {error:'You need a username'});
+    } else if (password === null || password.trim().length === 0) {
+        displayTemplate('#register-template', {username: username, error:'You need a password'});
+    } else if (password2 === null || password2.trim().length === 0) {
+        displayTemplate('#register-template', {username: username, error:'Passwords dont\'t match'});
+    } else if (password !== password2) {
+        displayTemplate('#register-template', {username: username, error:'Passwords dont\'t match'});
+    } else {
+        return {username: username, password: password};
+    }
+
+    return false;
+}
+
+/**
+ * Logs the specified user in. 
+ * On success, the global user object is populated with the users' account details and the user is redirected
+ * to the nowplaying template. 
+ * On failure, the user is redirected to the login template with an error message and the username populated.
+ */
+function login(username, password) {
+    console.log('attempting to log in with username ' + username);
+
+    // temporarily store username and password in global user object to allow getBasicAuthHeader to work
+    user = {};
+    user.username = username;
+    user.sessionToken = password;
+
+    $.ajax('http://localhost:8080/api/users/current', {
+        contentType: 'application/json',
+        headers: {
+            Authorization: getBasicAuthHeader()
+        },
+        type: 'PUT'
+    })
+    .done(function(data) {
+        // set the current user info
+        data = JSON.parse(data);
+        user.username = data.username;
+        user.sessionToken = data.token;
+        user.expiry = data.token_expires;
+
+        displayTemplate('#nowplaying-template', {});
+    })
+    .fail(function() {
+        // failed. try again
+        user = null;
+        displayTemplate('#login-template', {username: username, error:'Login failed. Try again.'});
+    });
+}
+
+/**
+ * Validates the username and password fields of the login form.
+ * If form contents are valid, returns an object with a populated username and password field.
+ * Otherwise, login-template is displayed with an error message and false is returned
+ */
+function validateLoginForm() {
+    var username = $('#content .login input#username').val();
+    var password = $('#content .login input#password').val();
+
+    if (username === null || username.trim().length === 0) {
+        displayTemplate('#login-template', {error:'You need a username'});
+    } else if (password === null || password.trim().length === 0) {
+        displayTemplate('#login-template', {username: username, error:'You need a password'});
+    } else {
+        return {username: username, password: password};
+    }
+
+    return false;
+}
+
+/**
+ * Stops the currently playing song and clears the current user
+ */
+function logout() {
+    stopSong();
+    nowplaying = null;
+    user = null;
 }
 
 /**
@@ -123,13 +280,13 @@ function addMedia(p, callback) {
     $('a').off('click.musik.nav');
 
     // is user logged in?
-    $('header .current-user li').hide();
-    if (user.sessionToken === null) {
+    if (user == null || user.sessionToken === null) {
+        // no? force them to
+        displayTemplateNoCallback('#login-template', {});
+        $('header .current-user li').hide();
         $('header .current-user li.logged-out').show();
-
-        //TODO: force display of login template if user is not logged in
-
     } else {
+        $('header .current-user li').hide();
         $('header .current-user li.logged-in a.username').html(user.username);
         $('header .current-user li.logged-in').show();
     }
@@ -143,6 +300,7 @@ function addMedia(p, callback) {
     $('header .current-user a.logout').on('click.musik.nav', function(event) {
         'use strict';
         event.preventDefault();
+        logout();
         displayTemplate('#login-template', {});
     });
     $('#content .login a.register').on('click.musik.nav', function(event) {
@@ -150,10 +308,27 @@ function addMedia(p, callback) {
         event.preventDefault();
         displayTemplate('#register-template', {});
     });
+    $('#content .login button.login').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+        var form = validateLoginForm();
+        if (form) {
+            login(form.username, form.password);
+        }
+    });
     $('#content .register a.login').on('click.musik.nav', function(event) {
         'use strict';
         event.preventDefault();
         displayTemplate('#login-template', {});
+    });
+    $('#content .register button.register').on('click.musik.nav', function(event) {
+        'use strict';
+        event.preventDefault();
+        
+        var form = validateRegistrationForm();
+        if (form) {
+            registerNewAccount(form.username, form.password);
+        }
     });
 
     //nav toolbar links
@@ -262,12 +437,15 @@ $('#content .login a.register').on('click.musik.nav', function(event) {
 
 /**
  * Re-draws the page, putting the specified template into the #content div
- * The specified params map will be passed to the template at display time 
+ * The specified params map will be passed to the template at display time.
+ *
+ * NOTE: this version does not call the hookEventHandlers method. It should be used
+ *       in cases where we want to switch to a template without causing a stack overflow
  *
  * templateSelector: String - a jQuery selector for the template to be placed into the #content div of the page
  * params: Object - a map of values to be passed into the template at display time
  */
- function displayTemplate(templateSelector, params) {
+ function displayTemplateNoCallback(templateSelector, params) {
     'use strict';
 
     console.log('Displaying ' + templateSelector);
@@ -279,13 +457,23 @@ $('#content .login a.register').on('click.musik.nav', function(event) {
     }
 
     //render the page wrapper - includes header, nav bar, login controls, etc
-    $('#wrapper').html(pageTemplate({}));
+    $('#wrapper').html(pageTemplate(user));
 
     //build the requested template and dump it into the page contents block
     //TODO: long term, we could keep a global map of compiled templates
     var template = Handlebars.compile($(templateSelector).html());
     $('#content').html(template(params));
+}
 
+/**
+ * Re-draws the page, putting the specified template into the #content div
+ * The specified params map will be passed to the template at display time 
+ *
+ * templateSelector: String - a jQuery selector for the template to be placed into the #content div of the page
+ * params: Object - a map of values to be passed into the template at display time
+ */
+function displayTemplate(templateSelector, params) {
+    displayTemplateNoCallback(templateSelector, params);
     hookEventHandlers();
 }
 
@@ -401,5 +589,5 @@ $(function() {
     getEncoderMimeTypes(initSoundManager2);
 
     //show the home page
-    displayTemplate('#nowplaying-template', {});    
+    displayTemplate('#nowplaying-template', {});
 });

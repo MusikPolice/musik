@@ -10,10 +10,15 @@ from musik.util import DateTimeEncoder
 
 
 def check_password():
-    """Returns true if the supplied username and password are valid.
-    The password argument is first treated as a session token. If this check fails, then
-    it is treated as a password. Users must make a POST request to get a new session token.
-    If either test passes, the cherrypy.request.authorized member is set to True and the
+    """If the supplied username and password are valid, returns False, indicating that the request has not been 
+    handled, and other request handlers should be allowed to execute.
+    
+    If the supplied username and password are not valid, returns True, indicating that the request has been 
+    handled, and other request handlers should not be allowed to execute. An HTTP 401/403 error will also be
+    thrown in this case.
+    
+    The password argument is first treated as a session token. If this check fails, then it is treated as a 
+    password. If either test passes, the cherrypy.request.authorized member is set to True and the 
     cherrypy.request.user member is set to the authenticated user."""
     db = DatabaseWrapper()
     session = db.get_session()
@@ -43,7 +48,7 @@ def check_password():
 
         if user is not None:
             cherrypy.request.authorized = True
-            # if the user was authorized, we didn't handle the request
+            # if the user was authorized, allow other page handlers to run
             return False
         else:
             cherrypy.request.authorized = False
@@ -63,38 +68,57 @@ def check_password():
 class CurrentUser():
     exposed = True
 
+    # GET /api/users/current
     def GET(self):
         """Gets information about the user that is currently logged in.
         Note that the password hash is not returned."""
-        cherrypy.response.headers['Content-Type'] = 'application/json'
-        return json.dumps(cherrypy.request.user.as_dict(), cls=DateTimeEncoder)
 
+        # throws an exception if auth fails
+        check_password()
+
+        # if auth succeeded, return info about the user
+        if (cherrypy.request.authorized):        
+            cherrypy.response.headers['Content-Type'] = 'application/json'
+            return json.dumps(cherrypy.request.user.as_dict(), cls=DateTimeEncoder)
+
+
+    # PUT /api/users/current
+    @cherrypy.tools.json_out()
     def PUT(self):
-        """Generates a new session token for the user that was authenticated in
-        the pre-request hook and returns account information. Note that the password
-        hash is not returned."""
-        cherrypy.response.headers['Content-Type'] = 'application/json'
-        cherrypy.request.user.generate_token()
-        cherrypy.request.db.commit()
-        return json.dumps(cherrypy.request.user.as_dict(), cls=DateTimeEncoder)
+        """Generates a new session token for the user credentials supplied in the basic authentication
+        header and returns account information. This is analogous to logging in to the service. Note that 
+        the users' password hash is not returned."""
+
+        # throws an exception if auth fails
+        check_password()
+
+        # if auth succeeded, generate a new token for the user
+        if (cherrypy.request.authorized):
+            cherrypy.request.user.generate_token()
+            cherrypy.request.db.commit()
+            return json.dumps(cherrypy.request.user.as_dict(), cls=DateTimeEncoder)
 
 
 class UserAccounts():
     """The methods in this class are NOT protected by HTTP authentication"""
     log = None
     exposed = True
+    current = CurrentUser()
 
     def __init__(self):
         self.log = log.Log(__name__)
 
+    #POST /api/users
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
     def POST(self):
         """Creates a new user account with the specified user name and password"""
         cherrypy.response.headers['Content-Type'] = 'application/json'
 
         # ensure that a valid username and password were specified
-        request = json.loads(cherrypy.request.body.read())
-        username = request['username']
-        password = request['token']
+        #request = json.loads(cherrypy.request.json)
+        username = cherrypy.request.json['username']
+        password = cherrypy.request.json['token']
 
         if username is None or username == '':
             raise cherrypy.HTTPError(400, "Unspecified username")

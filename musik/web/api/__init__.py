@@ -11,5 +11,4 @@ class API():
     tracks = library.Tracks()
     stream = streaming.Track()
     importer = importmedia.Importer()
-    currentuser = users.CurrentUser()
     users = users.UserAccounts()  # WARNING: all methods under /users are wide open to the public

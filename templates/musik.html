@@ -25,7 +25,7 @@
                 <h1>MUSIK <small>The world&#39;s finest music player</small></h1>
 
                 <ul class="current-user">
-                    <li class="logged-in"><a class="username" href='#'></a></li>
+                    <li class="logged-in"><a class="username" href='#'>{{user.username}}</a></li>
                     <li class="logged-in"><a class="logout" href='#'>logout</a></li>
                     <li class="logged-out"><a class="login" href='#'>log in/register</a></li>
                 </ul>
@@ -58,11 +58,15 @@
         <script id="register-template" type="text/x-handlebars">
             <div class='register'>
                 <h2>CREATE A NEW ACCOUNT</h2>
+
+                {{#if error}}
+                    <p class="error">{{error}}</p>
+                {{/if}}
                 
                 <form>
                     <div>
                         <label for="username">Username:</label>
-                        <input id="username" name="username" type="text">
+                        <input id="username" name="username" type="text" value={{username}}>
                     </div>
                     <div>
                         <label for="password">Password:</label>
@@ -84,11 +88,18 @@
             <div class='login'>
                 <h2>LOG IN TO LISTEN</h2>
 
+                {{#if error}}
+                    <p class="error">{{error}}</p>
+                {{/if}}
+                {{#if message}}
+                    <p class="message">{{message}}</p>
+                {{/if}}
+
                 <form>
                     <div>
                         <div>
                             <label for="username">Username:</label>
-                            <input id="username" name="username" type="text">
+                            <input id="username" name="username" type="text" value={{username}}>
                         </div>
                         <div>
                             <label for="password">Password:</label>
@@ -97,7 +108,7 @@
                         <button type="submit" class="login">Login</button>
                     <div>
                 </form>
-                <p>Need an account? <a href='#' class="register">Register now</a>.</p>
+                <p class="registernow">Need an account? <a href='#' class="register">Register now</a>.</p>
             </div>
         </script>
 

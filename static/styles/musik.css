@@ -116,7 +116,7 @@ header ul.current-user li {
   right: 0px;
   width: 80px;
 }
-#content .login p {
+#content .login p.registernow {
   font-size: 0.9em;
   position: absolute;
   text-align: center;

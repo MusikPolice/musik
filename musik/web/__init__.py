@@ -93,20 +93,20 @@ class WebService(object):
         }
 
         api_config = {
-            '/':
-            {
+            '/': {
                 'tools.db.on': True,
                 'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
 
                 # all api calls require that the client passes HTTP basic authentication
-                # TODO: this has been temporarily disabled until we get HTTP basic auth
-                #       working on the client side with ember.
+                'tools.authorize.on': True,
+            },
+            '/users': {
+                # anybody can list existing user accounts or create a new one
                 'tools.authorize.on': False,
             },
-
-            '/users':
-            {
-                # anybody can list existing user accounts or create a new one
+            '/stream': {
+                # anybody can request a list of the available encoders or stream any song file
+                # TODO: this could be considered a security hole. Consider requiring authorization
                 'tools.authorize.on': False,
             }
         }
