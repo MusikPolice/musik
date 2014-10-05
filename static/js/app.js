@@ -577,6 +577,31 @@ function playSong(trackId, mimeType) {
         },
         onstop: function() {
             $('#playpause-control').html('Play');
+        },
+        whileplaying: function() {
+            // try to use whatever the player knows about the song to figure out progress duration
+            // TODO: if none of this data is present, use track metadata
+            var d = 0;
+            var p = 0;
+            if (this.duration == 0) {
+                if (this.durationEstimate == 0) {
+                    d = this.bytesTotal;
+                    p = this.bytesLoaded;
+                } else {
+                    d = this.durationEstimate;
+                    p = this.position;
+                }
+            } else {
+                d = this.duration;
+                p = this.position;
+            }
+
+            // update the progress bar
+            $('header .player-controls progress').attr('value', p);
+            $('header .player-controls progress').attr('max', d);
+        },
+        onload: function () {
+            console.log("SOUND FULLY LOADED. Duration: " + this.duration + "ms, total bytes:" + this.bytesTotal);
         }
     });
 }

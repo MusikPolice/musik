@@ -4,6 +4,7 @@ from musik import db
 
 import cherrypy
 import json
+import os
 
 
 class DecoderEnumerator():
@@ -45,23 +46,6 @@ class Track():
 		self.log = log.Log(__name__)
 
 
-	def readStream(self, uri):
-		"""Reads the file at the specified uri and returns its contents as a stream.
-		* uri: the uri of the file to read
-		This function will immediately begin to return bytes before the entire file has
-		been consumed.
-		"""
-		self.log.info(u'Started streaming %s without transcoding' % unicode(uri))
-		with open(uri, 'rb') as f:
-			while True:
-				chunk = f.read(1024)
-				if chunk:
-					for b in chunk:
-						yield b
-				else:
-					break
-
-
 	def transcodeStream(self, uri, mimetype, targetFormat, targetMimeType):
 		"""Reads the file at the specified uri, transcodes it into the targetFormat (a short-hand
 		version of targetMimeType), and yields the data out as it's ready.
@@ -75,8 +59,6 @@ class Track():
 		"""
 		try:
 			transcode = audiotranscode.AudioTranscode()
-
-			self.log.info(u'Started streaming %s as %s' % (unicode(uri), targetMimeType))
 			for data in transcode.transcode_stream(uri, targetFormat):
 				yield data
 
@@ -119,11 +101,16 @@ class Track():
 
 		# if accept wasn't specified or matches original encoding, no need to transcode
 		if accept == None or targetMimeType == track.mimetype:
+			sizeInBytes = os.path.getsize(uri)
+			cherrypy.response.headers['Content-Length'] = sizeInBytes
 			cherrypy.response.headers['Content-Type'] = track.mimetype
-			return self.readStream(uri)
+			self.log.info(u'Started streaming %s without transcoding' % unicode(uri))
+			return open(uri, 'rb')
 
 		# otherwise, go ahead and transcode into the desired format
+		# in this case, we can't set a content-length header, so player has to get length elsewhere
 		cherrypy.response.headers['Content-Type'] = targetMimeType
+		self.log.info(u'Started streaming %s as %s' % (unicode(uri), targetMimeType))
 		return self.transcodeStream(uri, track.mimetype, targetFormat, targetMimeType)
 
 	GET._cp_config = {'response.stream': True}
