@@ -9,7 +9,7 @@ import json
 import random
 
 
-def _query(obj, sortby, params):
+def _query(obj, sortby, params, ignored):
     """Performs a generic database query and returns the results as a dictionary.
     obj: The musik.db object to query (Track, Artist, Album, etc)
     sortby: The field of obj to sort the results by (Track.title, Artist.name, etc)
@@ -43,9 +43,32 @@ def _query(obj, sortby, params):
     # return the results as JSON
     results = []
     for a in q.order_by(sortby).all():
-        results.append(a.as_dict())
+        results.append(a.as_dict(ignored))
 
     return results
+
+
+class Album():
+    log = None
+    exposed = True
+
+    def __init__(self):
+        self.log = log.Log(__name__)
+
+    def GET(self, *params):
+        """Assembles an album query by appending query parameters as filters.
+        The result is a query that satisfies all of the parameters that were
+        passed on the url string.
+        Returns the first result of the query sorted by title_sort property
+        """
+
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+
+        # return everything that we know about the first album in the list
+        results = _query(obj=musik.db.Album, sortby=musik.db.Album.title_sort, params=params, ignored=[])
+        if len(results) == 0:
+            raise cherrypy.HTTPError(404, 'Album not found')
+        return json.dumps(results[0], cls=DateTimeEncoder)
 
 
 class Albums():
@@ -64,9 +87,35 @@ class Albums():
 
         cherrypy.response.headers['Content-Type'] = 'application/json'
 
-        # do the query
-        results = _query(Album, Album.title_sort, params)
+        # return the list of albums, but don't expand each track in each album. the client can call
+        # the Album endpoint to get those details if necessary
+        results = _query(obj=musik.db.Album, sortby=musik.db.Album.title_sort, params=params, ignored=['tracks'])
+        if len(results) == 0:
+            raise cherrypy.HTTPError(404, 'Albums not found')
         return json.dumps(results, cls=DateTimeEncoder)
+
+
+class Artist():
+    log = None
+    exposed = True
+
+    def __init__(self):
+        self.log = log.Log(__name__)
+
+    def GET(self, *params):
+        """Assembles an artist query by appending query parameters as filters.
+        The result is a query that satisfies all of the parameters that were
+        passed on the url string.
+        Returns the first result of the query sorted by name_sort property
+        """
+
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+
+        # return everything that we know about the first artist in the list
+        results = _query(obj=musik.db.Artist, sortby=musik.db.Artist.name_sort, params=params, ignored=[])
+        if len(results) == 0:
+            raise cherrypy.HTTPError(404, 'Artist not found')
+        return json.dumps(results[0], cls=DateTimeEncoder)
 
 
 class Artists():
@@ -85,8 +134,11 @@ class Artists():
 
         cherrypy.response.headers['Content-Type'] = 'application/json'
 
-        # do the query
-        results = _query(Artist, Artist.name_sort, params)
+        # return the list of artists, but don't expand on each album in the list. the client can call
+        # the Artist endpoint to get those details if necessary.
+        results = _query(obj=musik.db.Artist, sortby=musik.db.Artist.name_sort, params=params, ignored=['albums'])
+        if len(results) == 0:
+            raise cherrypy.HTTPError(404, 'Artists not found')
         return json.dumps(results, cls=DateTimeEncoder)
 
 

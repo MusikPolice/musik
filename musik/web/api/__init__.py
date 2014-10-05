@@ -5,7 +5,9 @@ from musik.web.api import users
 
 
 class API():
+    album = library.Album()
     albums = library.Albums()
+    artist = library.Artist()
     artists = library.Artists()
     discs = library.Discs()
     tracks = library.Tracks()

@@ -94,7 +94,7 @@ function getEncoderMimeTypes(callback) {
  * The specified callback function will be called with the json object returned by the api on success
  */
  function getArtist(id, callback) {
-    $.ajax('http://localhost:8080/api/artists/id/' + id, {
+    $.ajax('http://localhost:8080/api/artist/id/' + id, {
         contentType: 'application/json',
         headers: {
             Authorization: getBasicAuthHeader()
@@ -105,7 +105,7 @@ function getEncoderMimeTypes(callback) {
         callback(data);
     })
     .fail(function() {
-        console.log('GET request to /api/artists/id/' + id + ' failed');
+        console.log('GET request to /api/artist/id/' + id + ' failed');
     });
 }
 
@@ -114,7 +114,7 @@ function getEncoderMimeTypes(callback) {
  * The specified callback function will be called with the json object returned by the api on success
  */
  function getAlbum(id, callback) {
-    $.ajax('http://localhost:8080/api/albums/id/' + id, {
+    $.ajax('http://localhost:8080/api/album/id/' + id, {
         contentType: 'application/json',
         headers: {
             Authorization: getBasicAuthHeader()
@@ -125,7 +125,7 @@ function getEncoderMimeTypes(callback) {
         callback(data);
     })
     .fail(function() {
-        console.log('GET request to /api/albums/id/' + id + ' failed');
+        console.log('GET request to /api/album/id/' + id + ' failed');
     });
 }
 
@@ -332,8 +332,7 @@ function logout() {
     });
 
     //nav toolbar links
-
-$('#content .login a.register').on('click.musik.nav', function(event) {
+    $('#content .login a.register').on('click.musik.nav', function(event) {
         'use strict';
         event.preventDefault();
         displayTemplate('#register-template', {});
@@ -374,8 +373,7 @@ $('#content .login a.register').on('click.musik.nav', function(event) {
         //fetch the full details for the appropriate artist
         var id = $(this).attr('artistId');
         getArtist(id, function(data) {
-            //we only need the first artist in the returned list
-            displayTemplate('#artist-details-template', data[0]);
+            displayTemplate('#artist-details-template', data);
         });
     });
 
@@ -387,8 +385,7 @@ $('#content .login a.register').on('click.musik.nav', function(event) {
         //fetch the full details of the album
         var id = $(this).attr('albumId');
         getAlbum(id, function(data) {
-            //we only needt he first result
-            displayTemplate('#album-details-template', data[0]);
+            displayTemplate('#album-details-template', data);
         });
     });
 
