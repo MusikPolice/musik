@@ -189,7 +189,7 @@ class Artist(Base):
         if self.albums is not None and 'albums' not in ignored:
             # when adding this artist's albums, we have to ignore their artist field because including
             # it causes infinite recursion and a stack overflow
-            artist_dict['albums'] = [album.as_dict(ignored=['artist', 'discs', 'tracks']) for album in self.albums]
+            artist_dict['albums'] = sorted([album.as_dict(ignored=['artist', 'discs', 'tracks']) for album in self.albums], key=lambda album: album['title_sort'])
 
         if 'numTracks' not in ignored:
             artist_dict['numTracks'] = self.numTracks();
@@ -261,11 +261,11 @@ class Album(Base):
         if self.discs is not None and 'discs' not in ignored:
             # all discs have the same album as a parent, so ignore this attribute on child discs or
             # else risk a stack overflow thanks to unbounded recursion
-            album_dict['discs'] = [disc.as_dict(ignored=['album', 'tracks']) for disc in self.discs]
+            album_dict['discs'] = sorted([disc.as_dict(ignored=['album', 'tracks']) for disc in self.discs], key=lambda disc: int(disc['discnumber']))
 
         if self.tracks is not None and 'tracks' not in ignored:
             # no need to include all of the computed columns for every track - that would be a waste
-            album_dict['tracks'] = [track.as_dict(ignored=['album', 'album_artist', 'artist', 'disc']) for track in self.tracks]
+            album_dict['tracks'] = sorted([track.as_dict(ignored=['album', 'album_artist', 'artist', 'disc']) for track in self.tracks], key=lambda track: int(track['tracknumber']))
 
         if 'numTracks' not in ignored:
             album_dict['numTracks'] = self.numTracks();
@@ -321,7 +321,7 @@ class Disc(Base):
             disc_dict['album'] = self.album.as_dict()
 
         if 'tracks' not in ignored:
-            disc_dict['tracks'] = [track.as_dict() for track in self.tracks]
+            disc_dict['tracks'] = sorted([track.as_dict() for track in self.trackcks], key=lambda track: int(track['tracknumber']))
 
         return disc_dict
 
