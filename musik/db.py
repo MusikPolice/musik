@@ -261,11 +261,11 @@ class Album(Base):
         if self.discs is not None and 'discs' not in ignored:
             # all discs have the same album as a parent, so ignore this attribute on child discs or
             # else risk a stack overflow thanks to unbounded recursion
-            album_dict['discs'] = sorted([disc.as_dict(ignored=['album', 'tracks']) for disc in self.discs], key=lambda disc: int(disc['discnumber']))
+            album_dict['discs'] = sorted([disc.as_dict(ignored=['album', 'tracks']) for disc in self.discs], key=lambda disc: (0 if disc['discnumber'] is None else int(disc['discnumber'])))
 
         if self.tracks is not None and 'tracks' not in ignored:
             # no need to include all of the computed columns for every track - that would be a waste
-            album_dict['tracks'] = sorted([track.as_dict(ignored=['album', 'album_artist', 'artist', 'disc']) for track in self.tracks], key=lambda track: int(track['tracknumber']))
+            album_dict['tracks'] = sorted([track.as_dict(ignored=['album', 'album_artist', 'artist', 'disc']) for track in self.tracks], key=lambda track: (0 if track['tracknumber'] is None else int(track['tracknumber'])))
 
         if 'numTracks' not in ignored:
             album_dict['numTracks'] = self.numTracks();
@@ -351,7 +351,7 @@ class Track(Base):
     format = Column(String)                                     # the file format/codec
     genre = Column(String)                                      # genre of track contents
     language = Column(String)                                   # language code
-    length = Column(BigInteger)                                 # length of the track in milliseconds
+    length = Column(BigInteger)                                 # length of the track in seconds
     lyrics = Column(String)                                     # the lyrics to the song
     mb_trackid = Column(String)                                 # unique 36-digit musicbrainz hex string
     samplerate = Column(Integer)                                # sample rate
