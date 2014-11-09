@@ -406,6 +406,29 @@ class Track(Base):
         return track_dict
 
 
+class UserAction(Base):
+    """An action that was performed by some user at some time. Used to report statistics and track activity that
+    informs shuffle play, song recommendations, etc."""
+
+    __tablename__ = 'user_actions'
+
+    id = Column(Integer, primary_key=True)
+    created = Column(DateTime, nullable=False)
+    userId = Column(Integer, ForeignKey('users.id'), nullable=False)
+    actionType = Column(Enum('LOG_IN', 'START_TRACK', 'COMPLETE_TRACK', 'SKIP_TRACK', name='action_type'), nullable=False)
+    artistId = Column(Integer, ForeignKey('artists.id'))
+    albumId = Column(Integer, ForeignKey('albums.id'))
+    trackId = Column(Integer, ForeignKey('tracks.id'))
+
+    def __init__(self, userId, actionType, artistId, albumId, trackId):
+        self.created = datetime.datetime.utcnow()
+        self.userId = userId
+        self.actionType = actionType
+        self.artistId = artistId
+        self.albumId = albumId
+        self.trackId = trackId
+
+
 # Loosely wraps the SQLAlchemy database types and access methods.
 # The goal here isn't to encapsulate SQLAlchemy. Rather, we want dictate
 # to the process of connecting to and disconnecting from the db,
