@@ -24,6 +24,21 @@ var canPlayVorbis = false;
 var canPlayMp3 = false;
 
 /**
+ * A map of album metadata information keyed on musik album id
+ */
+var albums = null;
+
+/**
+ * A map of artist metadata information keyed on musik artist id
+ */
+var artists = null;
+
+/**
+ * A map of track metadata information keyed on musik track id
+ */
+var tracks = null;
+
+/**
  * Computes a basic authorization header value based on the global user object.
  * If the global user object is not set, displays the login template
  */
@@ -54,6 +69,7 @@ function getEncoderMimeTypes(callback) {
  * The specified callback function will be called with json object returned by the api on success
  */
  function getAlbums(callback) {
+
     $.ajax('http://localhost:8080/api/albums', {
         contentType: 'application/json',
         headers: {
@@ -62,10 +78,41 @@ function getEncoderMimeTypes(callback) {
         type: 'GET'
     })
     .done(function(data) {
+        albums = {};
+        for(var i = 0; i < data.length; i++) {
+            var album = data[i];
+            albums[album.id] = album;
+        };
         callback(data);
     })
     .fail(function() {
         console.log('GET request to /api/albums failed');
+    });
+}
+
+/**
+ * Fetches the album with the specified id from the server
+ * The specified callback function will be called with the json object returned by the api on success
+ */
+ function getAlbum(id, callback) {
+    $.ajax('http://localhost:8080/api/album/id/' + id, {
+        contentType: 'application/json',
+        headers: {
+            Authorization: getBasicAuthHeader()
+        },
+        type: 'GET'
+    })
+    .done(function(data) {
+        albums = {};
+        albums[data.id] = data;
+        tracks = {};
+        for (var i = 0; i < data.tracks.length; i++) {
+            tracks[data.tracks[i].id] = data.tracks[i];
+        }
+        callback(data);
+    })
+    .fail(function() {
+        console.log('GET request to /api/album/id/' + id + ' failed');
     });
 }
 
@@ -82,6 +129,11 @@ function getEncoderMimeTypes(callback) {
         type: 'GET'
     })
     .done(function(data) {
+        artists = {};
+        for(var i = 0; i < data.length; i++) {
+            var artist = data[i];
+            artists[artist.id] = artist;
+        };
         callback(data);
     })
     .fail(function() {
@@ -102,30 +154,16 @@ function getEncoderMimeTypes(callback) {
         type: 'GET'
     })
     .done(function(data) {
+        artists = {};
+        artists[data.id] = data;
+        albums = {};
+        for (var i = 0; i < data.albums.length; i++) {
+            albums[data.albums[i].id] = data.albums[i];
+        }
         callback(data);
     })
     .fail(function() {
         console.log('GET request to /api/artist/id/' + id + ' failed');
-    });
-}
-
-/**
- * Fetches the album with the specified id from the server
- * The specified callback function will be called with the json object returned by the api on success
- */
- function getAlbum(id, callback) {
-    $.ajax('http://localhost:8080/api/album/id/' + id, {
-        contentType: 'application/json',
-        headers: {
-            Authorization: getBasicAuthHeader()
-        },
-        type: 'GET'
-    })
-    .done(function(data) {
-        callback(data);
-    })
-    .fail(function() {
-        console.log('GET request to /api/album/id/' + id + ' failed');
     });
 }
 
