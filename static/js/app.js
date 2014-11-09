@@ -434,7 +434,7 @@ function logout() {
         event.preventDefault();
 
         var trackId = $(this).parents('tr.track').attr('trackId');
-        var mimeType = $(this).attr('type')
+        var mimeType = tracks[trackId].mimetype;
 
         playSong(trackId, mimeType);
     });
