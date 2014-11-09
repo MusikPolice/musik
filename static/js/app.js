@@ -589,6 +589,10 @@ function playSong(trackId, mimeType) {
     var uri = '/api/stream/' + trackId + '/' + mimeType.split('/')[1];
     console.log('Loading ' + uri);
 
+    // cache the track info for later
+    var track = tracks[trackId];
+    var eightyPercentDone = false;
+
     //play the requested song
     nowplaying = soundManager.createSound({
         autoLoad: true,
@@ -615,17 +619,12 @@ function playSong(trackId, mimeType) {
         },
         whileplaying: function() {
             // try to use whatever the player knows about the song to figure out progress duration
-            // TODO: if none of this data is present, use track metadata
             var d = 0;
             var p = 0;
             if (this.duration == 0) {
-                if (this.durationEstimate == 0) {
-                    d = this.bytesTotal;
-                    p = this.bytesLoaded;
-                } else {
-                    d = this.durationEstimate;
-                    p = this.position;
-                }
+                // SM2 tracks position in ms, so we have to convert our length from seconds
+                d = track.length * 1000;
+                p = this.position;
             } else {
                 d = this.duration;
                 p = this.position;
@@ -634,9 +633,12 @@ function playSong(trackId, mimeType) {
             // update the progress bar
             $('header .player-controls progress').attr('value', p);
             $('header .player-controls progress').attr('max', d);
-        },
-        onload: function () {
-            console.log("SOUND FULLY LOADED. Duration: " + this.duration + "ms, total bytes:" + this.bytesTotal);
+
+            // TODO: throw events?
+            if (!eightyPercentDone && p / d > 0.8) {
+                console.log("Track is 80% complete - start loading next song?");
+                eightyPercentDone = true;
+            }
         }
     });
 }
